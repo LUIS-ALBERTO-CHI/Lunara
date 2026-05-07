@@ -16,8 +16,81 @@ function urlBase64ToUint8Array(base64String) {
 
 export default function Home() {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [affirmation, setAffirmation] = useState('Cargando tu afirmación del día...');
+  const [isLoadingAffirmation, setIsLoadingAffirmation] = useState(true);
   
   useEffect(() => {
+    // Obtener la afirmación del día desde localStorage o la API
+    const fetchAffirmation = async () => {
+      try {
+        const now = new Date();
+        const updateHour = 6; // 6:30 AM
+        const updateMinute = 30;
+        
+        // Obtener datos guardados en localStorage
+        const stored = localStorage.getItem('affirmationData');
+        const storedData = stored ? JSON.parse(stored) : null;
+        
+        // Calcular si es hora de actualizar (después de las 6:30 AM)
+        const isUpdateTime = now.getHours() > updateHour || 
+                            (now.getHours() === updateHour && now.getMinutes() >= updateMinute);
+        
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        const today = now.toISOString().split('T')[0];
+        
+        // Verificar si tenemos una afirmación válida del mismo día
+        if (storedData && storedData.date === today && isUpdateTime === false) {
+          // Usar la afirmación guardada (todavía no es hora de actualizar)
+          setAffirmation(storedData.affirmation);
+        } else if (storedData && storedData.date === today && storedData.lastUpdate === 'done') {
+          // Ya se actualizó hoy después de las 6:30 AM
+          setAffirmation(storedData.affirmation);
+        } else if (isUpdateTime) {
+          // Es hora de obtener una nueva afirmación
+          const res = await fetch('/api/daily-affirmation');
+          const data = await res.json();
+          setAffirmation(data.affirmation);
+          
+          // Guardar la nueva afirmación con marca de actualización
+          localStorage.setItem('affirmationData', JSON.stringify({
+            affirmation: data.affirmation,
+            date: today,
+            lastUpdate: 'done'
+          }));
+        } else {
+          // Primer acceso del día, antes de las 6:30 AM
+          const res = await fetch('/api/daily-affirmation');
+          const data = await res.json();
+          setAffirmation(data.affirmation);
+          
+          localStorage.setItem('affirmationData', JSON.stringify({
+            affirmation: data.affirmation,
+            date: today,
+            lastUpdate: 'pending'
+          }));
+        }
+      } catch (error) {
+        console.error('Error al obtener afirmación:', error);
+        setAffirmation('Soy luz, soy paz, soy suficiente');
+      } finally {
+        setIsLoadingAffirmation(false);
+      }
+    };
+
+    fetchAffirmation();
+
+    // Configurar intervalo para verificar cada hora si es hora de actualizar
+    const interval = setInterval(() => {
+      const now = new Date();
+      const updateHour = 6;
+      const updateMinute = 30;
+      
+      if (now.getHours() === updateHour && now.getMinutes() >= updateMinute && now.getMinutes() < updateMinute + 1) {
+        // Ejecutar la actualización cuando sea exactamente 6:30 AM
+        fetchAffirmation();
+      }
+    }, 60000); // Verificar cada minuto
+
     // Registrar el Service Worker al cargar la página
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
@@ -32,6 +105,8 @@ export default function Home() {
         window.location.reload();
       });
     }
+
+    return () => clearInterval(interval);
   }, []);
 
   const subscribeUser = async () => {
@@ -97,7 +172,9 @@ export default function Home() {
           <div className="glass p-container-padding rounded-lg shadow-[0_10px_40px_rgba(114,84,119,0.1)] border-t border-l border-white/60">
             <div className="flex flex-col items-center text-center space-y-3">
               <span className="font-label-sm text-label-sm text-primary tracking-widest uppercase">Afirmación del Día</span>
-              <h2 className="font-h2 text-h2 text-on-surface-variant italic">"Soy luz, soy paz, soy suficiente"</h2>
+              <h2 className={`font-h2 text-h2 text-on-surface-variant italic transition-opacity ${isLoadingAffirmation ? 'opacity-60' : 'opacity-100'}`}>
+                "{affirmation}"
+              </h2>
               <div className="flex gap-2">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
