@@ -60,19 +60,19 @@ export default function PhotoUploadModal({ isOpen, onClose, userId, onPhotoUpdat
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="glass rounded-lg p-8 max-w-md w-full shadow-2xl border border-white/20">
-        <h2 className="font-h2 text-h2 text-primary mb-6 text-center">Tu Foto de Perfil</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4">
+      <div className="glass rounded-lg p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/20">
+        <h2 className="text-lg sm:text-2xl font-bold text-primary mb-6 text-center">Tu Foto de Perfil</h2>
 
         {error && (
-          <div className="bg-error/20 border border-error rounded-lg p-3 mb-4 text-error text-sm">
+          <div className="bg-error/20 border border-error rounded-lg p-3 mb-4 text-error text-xs sm:text-sm">
             {error}
           </div>
         )}
 
         {preview && (
           <div className="mb-6 flex justify-center">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-primary">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-primary">
               <img src={preview} alt="Preview" className="w-full h-full object-cover" />
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function PhotoUploadModal({ isOpen, onClose, userId, onPhotoUpdat
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className="w-full mb-4 px-4 py-2 rounded-lg border-2 border-primary text-primary hover:bg-primary/10 transition-colors disabled:opacity-60"
+          className="w-full mb-4 px-4 py-2 rounded-lg border-2 border-primary text-primary hover:bg-primary/10 transition-colors disabled:opacity-60 text-sm"
         >
           {preview ? 'Cambiar Foto' : 'Seleccionar Foto'}
         </button>
@@ -97,7 +97,7 @@ export default function PhotoUploadModal({ isOpen, onClose, userId, onPhotoUpdat
         <button
           onClick={handleUpload}
           disabled={isLoading || !preview}
-          className="w-full bg-primary text-on-primary py-2 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60 mb-3"
+          className="w-full bg-primary text-on-primary py-2 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60 mb-3 text-sm"
         >
           {isLoading ? 'Guardando...' : 'Guardar Foto'}
         </button>
@@ -105,7 +105,7 @@ export default function PhotoUploadModal({ isOpen, onClose, userId, onPhotoUpdat
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="w-full px-4 py-2 rounded-lg bg-surface/50 text-on-surface hover:bg-surface/80 transition-colors"
+          className="w-full px-4 py-2 rounded-lg bg-surface/50 text-on-surface hover:bg-surface/80 transition-colors text-sm"
         >
           Cancelar
         </button>

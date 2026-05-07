@@ -52,30 +52,30 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="glass rounded-lg p-8 max-w-md w-full shadow-2xl border border-white/20">
-        <h2 className="font-h2 text-h2 text-primary mb-2 text-center">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4">
+      <div className="glass rounded-lg p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/20 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg sm:text-2xl font-bold text-primary mb-2 text-center">
           {isLogin ? 'Bienvenido' : 'Crear Cuenta'}
         </h2>
-        <p className="text-center text-on-surface-variant text-sm mb-6">
+        <p className="text-center text-on-surface-variant text-xs sm:text-sm mb-6">
           {isLogin
             ? 'Inicia sesión para personalizar tu experiencia'
             : 'Crea una cuenta para guardar tu perfil'}
         </p>
 
         {error && (
-          <div className="bg-error/20 border border-error rounded-lg p-3 mb-4 text-error text-sm">
+          <div className="bg-error/20 border border-error rounded-lg p-3 mb-4 text-error text-xs sm:text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="email"
             placeholder="Tu email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg bg-surface/50 border border-white/20 text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
+            className="w-full px-3 sm:px-4 py-2 rounded-lg bg-surface/50 border border-white/20 text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 text-sm"
             required
             disabled={isLoading}
           />
@@ -84,7 +84,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg bg-surface/50 border border-white/20 text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
+            className="w-full px-3 sm:px-4 py-2 rounded-lg bg-surface/50 border border-white/20 text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 text-sm"
             required
             disabled={isLoading}
           />
@@ -92,7 +92,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary text-on-primary py-2 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+            className="w-full bg-primary text-on-primary py-2 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60 text-sm"
           >
             {isLoading ? 'Procesando...' : isLogin ? 'Iniciar Sesión' : 'Registrarse'}
           </button>
@@ -104,7 +104,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               setIsLogin(!isLogin);
               setError('');
             }}
-            className="text-primary text-sm hover:underline"
+            className="text-primary text-xs sm:text-sm hover:underline"
             disabled={isLoading}
           >
             {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
