@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import AuthModal from './components/AuthModal';
+import PhotoUploadModal from './components/PhotoUploadModal';
 
 // Utilidad necesaria para convertir la llave pública al formato que pide el navegador
 function urlBase64ToUint8Array(base64String) {
@@ -18,6 +20,10 @@ export default function Home() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [affirmation, setAffirmation] = useState('Cargando tu afirmación del día...');
   const [isLoadingAffirmation, setIsLoadingAffirmation] = useState(true);
+  const [user, setUser] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   
   useEffect(() => {
     // Obtener la afirmación del día desde localStorage o la API
@@ -147,6 +153,26 @@ export default function Home() {
     alert(`Notificaciones enviadas a ${data.count} dispositivo(s).`);
   };
 
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    if (userData.profilePhotoUrl) {
+      setProfilePhoto(userData.profilePhotoUrl);
+    }
+    // Guardar datos en localStorage para persistencia
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handlePhotoUpdate = (photoUrl) => {
+    setProfilePhoto(photoUrl);
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    setUser(null);
+    setProfilePhoto(null);
+    localStorage.removeItem('user');
+  };
+
   return (
     <>
       {/* TopAppBar */}
@@ -156,9 +182,36 @@ export default function Home() {
           <span className="font-h2 text-h2 italic text-primary dark:text-primary-fixed">Positiva</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container hover:opacity-80 transition-opacity cursor-pointer">
-            <img alt="Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHDOSBWkvpx78HLD_S93nD8kYo8mBLnZ2viPi8EYEwLnH9h7cAMtB_kfYXvax2MksGpvJ4HgdHUh40DHMddcA8TojeoQUod2rDuL_ZNFp0UGpMNDtQJU9TMyKkQSsjqEJcFx3I1KQQo-bGvN-NHnZbbr-_1anACp9B4AvjfpqegrHE7GTSXxzUQvJ9fmSxOCVyeYB1j-lY_1n0CNkO-HzbLnlevIWWCsaEt1Zi2lv6kRoADRwXo_L5dBRxx0LB-zEW8Isv4gOW2wY"/>
-          </div>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPhotoModal(true)}
+                className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <img
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  src={profilePhoto || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHDOSBWkvpx78HLD_S93nD8kYo8mBLnZ2viPi8EYEwLnH9h7cAMtB_kfYXvax2MksGpvJ4HgdHUh40DHMddcA8TojeoQUod2rDuL_ZNFp0UGpMNDtQJU9TMyKkQSsjqEJcFx3I1KQQo-bGvN-NHnZbbr-_1anACp9B4AvjfpqegrHE7GTSXxzUQvJ9fmSxOCVyeYB1j-lY_1n0CNkO-HzbLnlevIWWCsaEt1Zi2lv6kRoADRwXo_L5dBRxx0LB-zEW8Isv4gOW2wY'}
+                />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+                title="Cerrar sesión"
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Iniciar Sesión
+            </button>
+          )}
         </div>
       </header>
       
@@ -236,6 +289,21 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Photo Upload Modal */}
+      <PhotoUploadModal
+        isOpen={showPhotoModal}
+        onClose={() => setShowPhotoModal(false)}
+        userId={user?.userId}
+        onPhotoUpdate={handlePhotoUpdate}
+      />
 
       {/* BottomNavBar */}
       <nav className="fixed bottom-6 left-0 right-0 flex justify-around items-center h-20 z-50 px-4 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[92%]">
