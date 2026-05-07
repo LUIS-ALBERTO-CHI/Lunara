@@ -24,23 +24,28 @@ export async function POST() {
     });
 
     // 2. Enviar el evento push a cada dispositivo
-    const promises = subscriptions.map((sub) => {
-      const pushSubscription = {
-        endpoint: sub.endpoint,
-        keys: {
-          p256dh: sub.p256dh,
-          auth: sub.auth,
+    const sendPromises = subscriptions.map(async (sub) => {
+      try {
+        const pushSubscription = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+          },
+        };
+        await webpush.sendNotification(pushSubscription, payload);
+      } catch (err) {
+        // Si el endpoint ya no es válido (código 410 o 404), lo eliminamos de la BD.
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          console.log(`Eliminando suscripción obsoleta: ${sub.endpoint}`);
+          await sql`DELETE FROM subscriptions WHERE endpoint = ${sub.endpoint}`;
+        } else {
+          console.error('Error enviando notificación a:', sub.endpoint, err);
         }
-      };
-      
-      return webpush.sendNotification(pushSubscription, payload).catch((err) => {
-        // Si el usuario revocó permisos, el endpoint expira (código 410)
-        // Aquí podrías agregar lógica para eliminarlo de la BD
-        console.error('Error enviando a:', sub.endpoint, err);
-      });
+      }
     });
 
-    await Promise.all(promises);
+    await Promise.all(sendPromises);
     return NextResponse.json({ success: true, count: subscriptions.length });
   } catch (error) {
     console.error(error);
