@@ -63,26 +63,117 @@ export default function Home() {
   };
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Vighnaharta</h1>
-      <p>Instala la aplicación desde la barra de direcciones de tu navegador.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-        <button 
-          onClick={subscribeUser} 
-          disabled={isSubscribed}
-          style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}
-        >
-          {isSubscribed ? 'Ya estás suscrito' : 'Suscribirse a Notificaciones'}
-        </button>
+      {/* Header fijo superior */}
+      <header style={{ 
+        height: '60px', 
+        backgroundColor: 'var(--primary)', 
+        color: 'white', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        position: 'fixed',
+        top: 0, width: '100%', zIndex: 10
+      }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Vighnaharta</h1>
+      </header>
+
+      {/* Contenedor principal de la página */}
+      <main style={{ 
+        flex: 1, 
+        overflowY: 'auto', 
+        padding: '80px 20px 80px 20px', /* Espacio para el header y footer */
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '20px',
+        maxWidth: '600px', /* En PC no se verá gigante */
+        margin: '0 auto',
+        width: '100%'
+      }}>
         
-        <button 
-          onClick={sendTestPush}
-          style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: 'black', color: 'white' }}
-        >
-          Enviar Test a Todos
-        </button>
-      </div>
-    </main>
+        {/* Tarjeta de Notificaciones */}
+        <div style={{ 
+          backgroundColor: 'var(--surface)', 
+          padding: '20px', 
+          borderRadius: '16px', 
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)' 
+        }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Notificaciones Push</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.5' }}>
+            Activa las notificaciones para recibir alertas y mantenerte actualizado con las novedades de la aplicación.
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button 
+              onClick={subscribeUser} 
+              disabled={isSubscribed}
+              style={{ 
+                padding: '12px', 
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: isSubscribed ? '#D1D5DB' : 'var(--primary)',
+                color: isSubscribed ? '#6B7280' : 'white',
+                fontWeight: 'bold',
+                cursor: isSubscribed ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
+              {isSubscribed ? 'Notificaciones Activadas ✅' : 'Activar Notificaciones'}
+            </button>
+            
+            <button 
+              onClick={sendTestPush}
+              style={{ 
+                padding: '12px', 
+                borderRadius: '8px',
+                border: '1px solid var(--primary)',
+                backgroundColor: 'transparent', 
+                color: 'var(--primary)',
+                fontWeight: 'bold',
+                cursor: 'pointer' 
+              }}
+            >
+              Enviar Test a Todos
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+      {/* Barra de Navegación Inferior (Bottom Nav) */}
+      <nav style={{ 
+        height: '65px', 
+        backgroundColor: 'var(--surface)', 
+        borderTop: '1px solid #E5E7EB',
+        display: 'flex', 
+        justifyContent: 'space-around', 
+        alignItems: 'center',
+        position: 'fixed',
+        bottom: 0, width: '100%', zIndex: 10,
+        paddingBottom: 'env(safe-area-inset-bottom)', /* Soporte para el área del iPhone */
+        color: 'var(--text-muted)'
+      }}>
+        
+        {/* Icono Inicio */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', color: 'var(--primary)' }}>
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span style={{ fontSize: '0.7rem', marginTop: '4px', fontWeight: 'bold' }}>Inicio</span>
+        </div>
+
+        {/* Icono Notificaciones */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span style={{ fontSize: '0.7rem', marginTop: '4px' }}>Alertas</span>
+        </div>
+
+        {/* Icono Perfil */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span style={{ fontSize: '0.7rem', marginTop: '4px' }}>Perfil</span>
+        </div>
+      </nav>
+    </div>
   );
 }
