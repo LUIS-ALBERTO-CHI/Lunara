@@ -10,7 +10,7 @@ export async function POST() {
     }
 
     webpush.setVapidDetails(
-      'albchicasanova16@gmail.com', // Reemplaza con tu email real
+      'mailto:albchicasanova16@gmail.com', // Reemplaza con tu email real
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
     );
