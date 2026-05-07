@@ -17,21 +17,6 @@ function urlBase64ToUint8Array(base64String) {
 export default function Home() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   
-  // Estados para el Splash Screen
-  const [showSplash, setShowSplash] = useState(true);
-  const [isFading, setIsFading] = useState(false);
-
-  useEffect(() => {
-    // Simulamos el tiempo de carga de la app (1.5 segundos)
-    const splashTimer = setTimeout(() => {
-      setIsFading(true);
-      // Esperamos que termine la transición de CSS (0.5s) para removerlo del DOM
-      setTimeout(() => setShowSplash(false), 500);
-    }, 1500);
-
-    return () => clearTimeout(splashTimer);
-  }, []);
-
   useEffect(() => {
     // Registrar el Service Worker al cargar la página
     if ('serviceWorker' in navigator) {
@@ -88,145 +73,116 @@ export default function Home() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      
-      {/* Splash Screen (Pantalla de Carga Inicial) */}
-      {showSplash && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'var(--primary)',
-          color: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          opacity: isFading ? 0 : 1,
-          transition: 'opacity 0.5s ease-out'
-        }}>
-          <img 
-            src="/icon-192x192.png" 
-            alt="Vighnaharta Logo" 
-            style={{ 
-              width: '120px', 
-              height: '120px', 
-              marginBottom: '20px'
-            }} 
-          />
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>Vighnaharta</h1>
+    <>
+      {/* TopAppBar */}
+      <header className="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-2xl text-primary dark:text-primary-fixed-dim docked full-width top-0 sticky z-50 border-b border-white/20 dark:border-outline/10 shadow-[0_4px_30px_rgba(114,84,119,0.1)] flex justify-between items-center px-gutter w-full h-16">
+        <div className="flex items-center gap-2">
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-primary"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
+          <span className="font-h2 text-h2 italic text-primary dark:text-primary-fixed">Positiva</span>
         </div>
-      )}
-      
-      {/* Header fijo superior */}
-      <header style={{ 
-        height: '60px', 
-        backgroundColor: 'var(--primary)', 
-        color: 'white', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        position: 'fixed',
-        top: 0, width: '100%', zIndex: 10
-      }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Vighnaharta</h1>
-      </header>
-
-      {/* Contenedor principal de la página */}
-      <main style={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        padding: '80px 20px 80px 20px', /* Espacio para el header y footer */
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '20px',
-        maxWidth: '600px', /* En PC no se verá gigante */
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        
-        {/* Tarjeta de Notificaciones */}
-        <div style={{ 
-          backgroundColor: 'var(--surface)', 
-          padding: '20px', 
-          borderRadius: '16px', 
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)' 
-        }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Notificaciones Push</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.5' }}>
-            Activa las notificaciones para recibir alertas y mantenerte actualizado con las novedades de la aplicación.
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button 
-              onClick={subscribeUser} 
-              disabled={isSubscribed}
-              style={{ 
-                padding: '12px', 
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: isSubscribed ? '#D1D5DB' : 'var(--primary)',
-                color: isSubscribed ? '#6B7280' : 'white',
-                fontWeight: 'bold',
-                cursor: isSubscribed ? 'not-allowed' : 'pointer',
-                transition: 'background 0.2s'
-              }}
-            >
-              {isSubscribed ? 'Notificaciones Activadas ✅' : 'Activar Notificaciones'}
-            </button>
-            
-            <button 
-              onClick={sendTestPush}
-              style={{ 
-                padding: '12px', 
-                borderRadius: '8px',
-                border: '1px solid var(--primary)',
-                backgroundColor: 'transparent', 
-                color: 'var(--primary)',
-                fontWeight: 'bold',
-                cursor: 'pointer' 
-              }}
-            >
-              Enviar Test a Todos
-            </button>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container hover:opacity-80 transition-opacity cursor-pointer">
+            <img alt="Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHDOSBWkvpx78HLD_S93nD8kYo8mBLnZ2viPi8EYEwLnH9h7cAMtB_kfYXvax2MksGpvJ4HgdHUh40DHMddcA8TojeoQUod2rDuL_ZNFp0UGpMNDtQJU9TMyKkQSsjqEJcFx3I1KQQo-bGvN-NHnZbbr-_1anACp9B4AvjfpqegrHE7GTSXxzUQvJ9fmSxOCVyeYB1j-lY_1n0CNkO-HzbLnlevIWWCsaEt1Zi2lv6kRoADRwXo_L5dBRxx0LB-zEW8Isv4gOW2wY"/>
           </div>
         </div>
+      </header>
+      
+      <main className="relative px-gutter pb-32 pt-8 max-w-lg mx-auto min-h-[calc(100vh-64px)] overflow-hidden">
+        {/* Decorative Clouds and Stars */}
+        <div className="absolute top-20 -left-10 w-40 h-40 bg-primary-fixed/30 blur-3xl rounded-full -z-10"></div>
+        <div className="absolute bottom-40 -right-10 w-60 h-60 bg-secondary-fixed/30 blur-3xl rounded-full -z-10"></div>
+        
+        {/* Affirmation Card */}
+        <section className="mb-section-gap relative z-10">
+          <div className="glass p-container-padding rounded-lg shadow-[0_10px_40px_rgba(114,84,119,0.1)] border-t border-l border-white/60">
+            <div className="flex flex-col items-center text-center space-y-3">
+              <span className="font-label-sm text-label-sm text-primary tracking-widest uppercase">Afirmación del Día</span>
+              <h2 className="font-h2 text-h2 text-on-surface-variant italic">"Soy luz, soy paz, soy suficiente"</h2>
+              <div className="flex gap-2">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+              </div>
+            </div>
+          </div>
+        </section>
 
+        {/* Companion Section */}
+        <section className="flex flex-col items-center justify-center py-unit relative h-80">
+          <div className="organic-float relative">
+            <div className="absolute inset-0 bg-primary-container/40 blur-2xl rounded-full scale-150 -z-10"></div>
+            <div className="w-56 h-56 rounded-full overflow-hidden celestial-glow border-4 border-white/80 p-2 glass">
+              <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-tr from-primary-container to-tertiary-container">
+                <img alt="Compañero Místico" className="w-full h-full object-cover mix-blend-soft-light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqcZiUmuW2INfy-hrCRyWIBmHED266Ex3ydzMcymrDhW-xQY9jzdiBedZdeRE4-VGH8lmmRX-fgcTVA3gJD34aRm_MpFgpHF8TX-9VXWY_4p9yhnuo18lOpdLkZhzQDgMjOsoqwHe6shCr0YYWMoPSpijdYoqyOjAPn_Ao7HpArCsOv6L7pbLueHOZcyVxoePihL9aAOytn7aYOIiDUWMRTC4icOHgPnrGjY90y5qkiTbdQcYDb4PY0DDCQ6XJkEp71G9RkpoST6U"/>
+              </div>
+            </div>
+            <div className="absolute -top-4 -right-2 text-primary-container animate-pulse">
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
+            </div>
+            <div className="absolute -bottom-2 -left-4 text-secondary-container">
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+          </div>
+          <div className="mt-8 text-center">
+            <h3 className="font-h3 text-h3 text-primary">Tu Universo está en calma</h3>
+            <p className="font-body-md text-on-surface-variant opacity-80 mt-1">Alma Estelar, tu energía vibra hoy en 980 Hz</p>
+          </div>
+        </section>
+
+        {/* Quick Actions Bento Grid */}
+        <section className="mt-section-gap grid grid-cols-2 gap-4">
+          <button onClick={subscribeUser} disabled={isSubscribed} className="glass p-container-padding rounded-lg flex flex-col items-center gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
+            <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2v8M4.22 10.22l1.42 1.42M1 18h22M22.78 10.22l-1.42 1.42M8 22h8M12 10a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/></svg>
+            </div>
+            <span className="font-label-sm text-label-sm text-primary-fixed-variant">{isSubscribed ? 'Ritual Activo ✅' : 'Ritual de Mañana'}</span>
+          </button>
+          <button onClick={sendTestPush} className="glass p-container-padding rounded-lg flex flex-col items-center gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
+            <div className="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span className="font-label-sm text-label-sm text-on-secondary-fixed-variant">Meditación Flash</span>
+          </button>
+        </section>
+
+        {/* Insights / Mini Cards */}
+        <section className="mt-gutter space-y-4">
+          <div className="glass p-gutter rounded-lg flex items-center gap-4">
+            <div className="w-10 h-10 bg-tertiary-container/30 rounded-full flex items-center justify-center text-tertiary">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-label-sm text-label-sm text-on-surface-variant opacity-70">Luna Actual</p>
+              <p className="font-body-md text-on-surface">Creciente en Libra</p>
+            </div>
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-primary/30"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </section>
       </main>
 
-      {/* Barra de Navegación Inferior (Bottom Nav) */}
-      <nav style={{ 
-        height: '65px', 
-        backgroundColor: 'var(--surface)', 
-        borderTop: '1px solid #E5E7EB',
-        display: 'flex', 
-        justifyContent: 'space-around', 
-        alignItems: 'center',
-        position: 'fixed',
-        bottom: 0, width: '100%', zIndex: 10,
-        paddingBottom: 'env(safe-area-inset-bottom)', /* Soporte para el área del iPhone */
-        color: 'var(--text-muted)'
-      }}>
-        
-        {/* Icono Inicio */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', color: 'var(--primary)' }}>
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-          <span style={{ fontSize: '0.7rem', marginTop: '4px', fontWeight: 'bold' }}>Inicio</span>
-        </div>
-
-        {/* Icono Notificaciones */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <span style={{ fontSize: '0.7rem', marginTop: '4px' }}>Alertas</span>
-        </div>
-
-        {/* Icono Perfil */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span style={{ fontSize: '0.7rem', marginTop: '4px' }}>Perfil</span>
-        </div>
+      {/* BottomNavBar */}
+      <nav className="fixed bottom-6 left-0 right-0 flex justify-around items-center h-20 z-50 px-4 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[92%]">
+        <a className="flex flex-col items-center justify-center bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container rounded-full px-4 py-2 scale-110 transition-transform animate-pulse duration-[2000ms]" href="#">
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span className="font-label-sm text-label-sm tracking-widest mt-1">Universo</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2.5 21.5l14-14M22 2l-2 2M22 6l-2-2M18 2l2 2M2 6l2-2M2 2l2 2M6 2l-2 2"/></svg>
+          <span className="font-label-sm text-label-sm tracking-widest mt-1">Manifestar</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span className="font-label-sm text-label-sm tracking-widest mt-1">Diario</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span className="font-label-sm text-label-sm tracking-widest mt-1">Oráculo</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span className="font-label-sm text-label-sm tracking-widest mt-1">Guía</span>
+        </a>
       </nav>
-    </div>
+    </>
   );
 }
