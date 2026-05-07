@@ -26,6 +26,13 @@ export default function Home() {
 
   const subscribeUser = async () => {
     try {
+      // Pedimos permiso explícitamente al usuario
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('Debes aceptar los permisos para recibir notificaciones.');
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       
       // Suscribimos el dispositivo a los servicios de push del navegador (ej. Chrome, Safari)
