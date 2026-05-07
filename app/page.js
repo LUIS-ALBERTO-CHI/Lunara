@@ -16,6 +16,21 @@ function urlBase64ToUint8Array(base64String) {
 
 export default function Home() {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  
+  // Estados para el Splash Screen
+  const [showSplash, setShowSplash] = useState(true);
+  const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    // Simulamos el tiempo de carga de la app (1.5 segundos)
+    const splashTimer = setTimeout(() => {
+      setIsFading(true);
+      // Esperamos que termine la transición de CSS (0.5s) para removerlo del DOM
+      setTimeout(() => setShowSplash(false), 500);
+    }, 1500);
+
+    return () => clearTimeout(splashTimer);
+  }, []);
 
   useEffect(() => {
     // Registrar el Service Worker al cargar la página
@@ -74,6 +89,34 @@ export default function Home() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      
+      {/* Splash Screen (Pantalla de Carga Inicial) */}
+      {showSplash && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'var(--primary)',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          opacity: isFading ? 0 : 1,
+          transition: 'opacity 0.5s ease-out'
+        }}>
+          <img 
+            src="/icon-192x192.png" 
+            alt="Vighnaharta Logo" 
+            style={{ 
+              width: '120px', 
+              height: '120px', 
+              marginBottom: '20px'
+            }} 
+          />
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>Vighnaharta</h1>
+        </div>
+      )}
       
       {/* Header fijo superior */}
       <header style={{ 
