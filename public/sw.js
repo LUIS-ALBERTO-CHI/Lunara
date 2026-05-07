@@ -1,3 +1,13 @@
+// Fuerza al nuevo Service Worker a instalarse y activarse inmediatamente
+self.addEventListener('install', function (event) {
+  self.skipWaiting();
+});
+
+// Toma el control de las pestañas o la app abierta inmediatamente
+self.addEventListener('activate', function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('push', function (event) {
   if (event.data) {
     const data = event.data.json();

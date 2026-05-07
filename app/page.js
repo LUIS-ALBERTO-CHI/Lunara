@@ -20,7 +20,17 @@ export default function Home() {
   useEffect(() => {
     // Registrar el Service Worker al cargar la página
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error(err));
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        // Opcional: Aquí podrías mostrar un aviso si hay actualización
+        reg.addEventListener('updatefound', () => {
+          console.log('Descargando nueva versión de la PWA de fondo...');
+        });
+      }).catch(err => console.error('Error al registrar SW:', err));
+
+      // Cuando el nuevo Service Worker toma el control, recargamos la app
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
     }
   }, []);
 
