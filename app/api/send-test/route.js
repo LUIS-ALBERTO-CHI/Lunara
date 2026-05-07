@@ -2,14 +2,19 @@ import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 
-webpush.setVapidDetails(
-  'mailto:tu@email.com', // Reemplaza con tu email real
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
 export async function POST() {
   try {
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      console.error('Faltan las variables de entorno VAPID');
+      return NextResponse.json({ error: 'Configuración del servidor incompleta' }, { status: 500 });
+    }
+
+    webpush.setVapidDetails(
+      'albchicasanova16@gmail.com', // Reemplaza con tu email real
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+
     // 1. Obtener todas las suscripciones de nuestra BD Neon
     const { rows: subscriptions } = await sql`SELECT * FROM subscriptions`;
 
