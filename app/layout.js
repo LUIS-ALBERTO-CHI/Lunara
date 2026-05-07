@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Mi PWA',
-  description: 'PWA con notificaciones push',
+  title: 'Vighnaharta',
+  description: 'Vighnaharta PWA',
   manifest: '/manifest.json',
 };
 

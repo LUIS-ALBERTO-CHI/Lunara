@@ -64,7 +64,7 @@ export default function Home() {
 
   return (
     <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>PWA Notificaciones Push</h1>
+      <h1>Vighnaharta</h1>
       <p>Instala la aplicación desde la barra de direcciones de tu navegador.</p>
       
       <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
