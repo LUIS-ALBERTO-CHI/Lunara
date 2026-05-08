@@ -49,6 +49,20 @@ export default function Home() {
   const audioRef = useRef(null);
   
   useEffect(() => {
+    // Restaurar sesión de usuario al recargar la página o abrir la app
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        if (userData.profilePhotoUrl) {
+          setProfilePhoto(userData.profilePhotoUrl);
+        }
+      } catch (error) {
+        console.error('Error al restaurar sesión de usuario:', error);
+      }
+    }
+
     // Obtener la afirmación del día desde localStorage o la API
     const fetchAffirmation = async () => {
       try {
