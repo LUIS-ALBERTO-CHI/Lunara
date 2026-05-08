@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import AuthModal from './components/AuthModal';
 import PhotoUploadModal from './components/PhotoUploadModal';
 
@@ -39,6 +39,7 @@ export default function Home() {
   const [breathAction, setBreathAction] = useState('Respira profundo');
   const [moonPhase, setMoonPhase] = useState('Sintonizando astros...');
   const [activeTab, setActiveTab] = useState('universo');
+  const audioRef = useRef(null);
   
   useEffect(() => {
     // Obtener la afirmación del día desde localStorage o la API
@@ -182,6 +183,10 @@ export default function Home() {
     } else if (meditationTimeLeft === 0 && isMeditating) {
       setBreathAction('¡Completado!');
       setIsMeditating(false);
+      // Pausar el audio suavemente al terminar
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     }
     return () => clearInterval(interval);
   }, [isMeditating, meditationTimeLeft]);
@@ -224,13 +229,30 @@ export default function Home() {
     setMeditationTimeLeft(60); // 1 minuto
     setIsMeditating(false);
     setBreathAction('Respira profundo');
+    
+    // Inicializar el audio si no existe
+    if (!audioRef.current) {
+      // Sonido relajante público de olas suaves
+      audioRef.current = new Audio('https://actions.google.com/sounds/v1/water/ocean_waves_pebble_beach.ogg');
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.4; // Volumen suave al 40%
+    }
   };
 
-  const startMeditation = () => setIsMeditating(true);
+  const startMeditation = () => {
+    setIsMeditating(true);
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => console.log('El navegador bloqueó el autoplay:', err));
+    }
+  };
 
   const closeMeditation = () => {
     setShowMeditationModal(false);
     setIsMeditating(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0; // Reiniciar el audio al principio
+    }
   };
 
   const handleAuthSuccess = (userData) => {
@@ -484,18 +506,18 @@ export default function Home() {
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`flex items-center justify-center transition-all duration-300 ease-out ${
+            className={`flex items-center justify-center transition-all duration-300 ease-in-out rounded-full ${
               activeTab === item.id 
-                ? 'bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gap-2 shadow-sm'
+                ? 'bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container px-3.5 sm:px-5 py-2 sm:py-2.5 shadow-sm'
                 : 'p-2 sm:p-2.5 text-on-surface-variant opacity-60 hover:opacity-100 hover:scale-110'
             }`}
           >
-            {item.icon}
-            {activeTab === item.id && (
-              <span className="text-xs sm:text-sm font-semibold tracking-wide truncate">
-                {item.label}
-              </span>
-            )}
+            <div className="flex-shrink-0">{item.icon}</div>
+            <span className={`text-xs sm:text-sm font-semibold tracking-wide overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
+              activeTab === item.id ? 'max-w-[100px] opacity-100 ml-1.5 sm:ml-2' : 'max-w-0 opacity-0 ml-0'
+            }`}>
+              {item.label}
+            </span>
           </button>
         ))}
       </nav>
