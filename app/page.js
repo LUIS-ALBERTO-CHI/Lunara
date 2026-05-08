@@ -150,6 +150,13 @@ export default function Home() {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         window.location.reload();
       });
+
+      // Comprobar si ya estamos suscritos al cargar la app
+      navigator.serviceWorker.ready.then(registration => {
+        registration.pushManager.getSubscription().then(subscription => {
+          setIsSubscribed(!!subscription);
+        });
+      });
     }
 
     // Comprobar si ya se pidió el ritual en las últimas 24 horas al cargar la página
@@ -304,6 +311,50 @@ export default function Home() {
     localStorage.removeItem('user');
   };
 
+  const handleToggleNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      alert('Las notificaciones push no están soportadas en tu navegador.');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      if (isSubscribed) {
+        // Desuscribirse
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          // TODO: Avisar a la base de datos (Neon) para borrar esta suscripción
+        }
+        setIsSubscribed(false);
+      } else {
+        // Pedir permiso y suscribirse
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert('Necesitamos tu permiso para enviarte magia cósmica.');
+          return;
+        }
+        
+        // Obtiene tu llave pública desde las variables de entorno
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuB2Bq1bQ5zX0-9T2w-0cRtzM0';
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+        
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+        
+        // TODO: Enviar 'subscription' a tu backend para guardarla en la tabla 'subscriptions'
+        console.log('Suscripción generada:', JSON.stringify(subscription));
+        setIsSubscribed(true);
+      }
+    } catch (error) {
+      console.error('Error con las notificaciones:', error);
+      alert('Hubo un desequilibrio al configurar las notificaciones.');
+    }
+  };
+
   return (
     <>
       {/* TopAppBar */}
@@ -370,7 +421,7 @@ export default function Home() {
                 <span className="text-[10px] text-on-surface-variant opacity-70">Rituales y energía</span>
               </div>
               <button 
-                onClick={() => setIsSubscribed(!isSubscribed)}
+                onClick={handleToggleNotifications}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isSubscribed ? 'bg-primary' : 'bg-surface-variant/70'}`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isSubscribed ? 'translate-x-6' : 'translate-x-1'}`} />
