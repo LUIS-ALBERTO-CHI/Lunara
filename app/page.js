@@ -38,6 +38,7 @@ export default function Home() {
   const [isMeditating, setIsMeditating] = useState(false);
   const [breathAction, setBreathAction] = useState('Respira profundo');
   const [moonPhase, setMoonPhase] = useState('Sintonizando astros...');
+  const [activeTab, setActiveTab] = useState('universo');
   
   useEffect(() => {
     // Obtener la afirmación del día desde localStorage o la API
@@ -322,7 +323,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-primary-container/40 blur-2xl rounded-full scale-150 -z-10"></div>
             <div className="w-40 sm:w-56 h-40 sm:h-56 rounded-full overflow-hidden celestial-glow border-4 border-white/80 p-2 glass">
               <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-tr from-primary-container to-tertiary-container">
-                <img alt="Pequeño elefante místico" class="w-full h-full object-cover mix-blend-soft-light" data-alt="A cute, mystical baby elephant (Ganesha-inspired) in a soft, ethereal pastel style. The elephant should have a pearlescent lavender skin tone, a tiny golden lotus crown, and be surrounded by a magical aura of sparkles and soft cosmic dust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNfcVTTuz2eKs5PA4qZxqwwfLnsSGwPCB_gsn3EC3Tajm2XObyDuOo_blqgntSc_32Xkg4WzDI0MuBvgHw3ltDBK7okZk0RAMzpYs8_eE-0MhajJAhIbYCtCD9DlSPLpXT2YqVJ4u8J4lyTmE_Asr13sL4z4m9ze8o5h4-UXUg5JV70mVPPR3oTKvU7k2xJZnSFtV39IDR_K1CmC15E9DlGI6l3uM61sk_LGsl_iWUZZ70nDeZUsHsmfyGWjqR7yobc2wz8vAP7YI" />
+                <img alt="Pequeño elefante místico" className="w-full h-full object-cover mix-blend-soft-light" data-alt="A cute, mystical baby elephant (Ganesha-inspired) in a soft, ethereal pastel style. The elephant should have a pearlescent lavender skin tone, a tiny golden lotus crown, and be surrounded by a magical aura of sparkles and soft cosmic dust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNfcVTTuz2eKs5PA4qZxqwwfLnsSGwPCB_gsn3EC3Tajm2XObyDuOo_blqgntSc_32Xkg4WzDI0MuBvgHw3ltDBK7okZk0RAMzpYs8_eE-0MhajJAhIbYCtCD9DlSPLpXT2YqVJ4u8J4lyTmE_Asr13sL4z4m9ze8o5h4-UXUg5JV70mVPPR3oTKvU7k2xJZnSFtV39IDR_K1CmC15E9DlGI6l3uM61sk_LGsl_iWUZZ70nDeZUsHsmfyGWjqR7yobc2wz8vAP7YI" />
               </div>
             </div>
             <div className="absolute -top-4 -right-2 text-primary-container animate-pulse">
@@ -472,27 +473,31 @@ export default function Home() {
       )}
 
       {/* BottomNavBar */}
-      <nav className="fixed bottom-4 sm:bottom-6 left-0 right-0 flex justify-around items-center h-16 sm:h-20 z-50 px-2 sm:px-4 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[95%] sm:w-[92%]">
-        <a className="flex flex-col items-center justify-center bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container rounded-full px-3 sm:px-4 py-1.5 sm:py-2 scale-100 sm:scale-110 transition-transform animate-pulse duration-[2000ms]" href="#">
-          <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          <span className="text-xs sm:text-sm tracking-wider mt-0.5 sm:mt-1 font-semibold">Universo</span>
-        </a>
-        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
-          <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2.5 21.5l14-14M22 2l-2 2M22 6l-2-2M18 2l2 2M2 6l2-2M2 2l2 2M6 2l-2 2"/></svg>
-          <span className="text-xs sm:text-sm tracking-wider mt-0.5 sm:mt-1 font-semibold">Manifestar</span>
-        </a>
-        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
-          <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          <span className="text-xs sm:text-sm tracking-wider mt-0.5 sm:mt-1 font-semibold">Diario</span>
-        </a>
-        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
-          <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          <span className="text-xs sm:text-sm tracking-wider mt-0.5 sm:mt-1 font-semibold">Oráculo</span>
-        </a>
-        <a className="flex flex-col items-center justify-center text-on-secondary-fixed-variant dark:text-on-secondary-fixed opacity-70 hover:scale-105 transition-all" href="#">
-          <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <span className="text-xs sm:text-sm tracking-wider mt-0.5 sm:mt-1 font-semibold">Guía</span>
-        </a>
+      <nav className="fixed bottom-4 sm:bottom-6 left-0 right-0 flex justify-between items-center h-16 sm:h-20 z-50 px-3 sm:px-5 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[94%] sm:w-[90%] transition-all">
+        {[
+          { id: 'universo', label: 'Universo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
+          { id: 'manifestar', label: 'Manifestar', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2.5 21.5l14-14M22 2l-2 2M22 6l-2-2M18 2l2 2M2 6l2-2M2 2l2 2M6 2l-2 2"/></svg> },
+          { id: 'diario', label: 'Diario', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+          { id: 'oraculo', label: 'Oráculo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg> },
+          { id: 'guia', label: 'Guía', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> }
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`flex items-center justify-center transition-all duration-300 ease-out ${
+              activeTab === item.id 
+                ? 'bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gap-2 shadow-sm'
+                : 'p-2 sm:p-2.5 text-on-surface-variant opacity-60 hover:opacity-100 hover:scale-110'
+            }`}
+          >
+            {item.icon}
+            {activeTab === item.id && (
+              <span className="text-xs sm:text-sm font-semibold tracking-wide truncate">
+                {item.label}
+              </span>
+            )}
+          </button>
+        ))}
       </nav>
     </>
   );
