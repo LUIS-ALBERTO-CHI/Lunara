@@ -1,7 +1,10 @@
 # 📬 Configuración de Notificaciones Push
 
 ## Descripción
-Este sistema envía notificaciones push a los usuarios suscritos cuando hay un nuevo ritual cósmico disponible.
+Este sistema envía notificaciones push a los usuarios suscritos cuando:
+- ✨ Hay un nuevo **ritual cósmico** disponible
+- 💫 Se actualiza la **afirmación del día** (6:30 AM)
+- 🌙 Se crea una nueva **manifestación personalizada**
 
 ## Variables de Entorno Requeridas
 
@@ -65,32 +68,125 @@ Obtiene un nuevo ritual y lo envía como notificación push a todos los suscript
 }
 ```
 
-### 3. POST `/api/trigger-ritual-notification`
-Dispara manualmente el envío de notificaciones con autenticación por token.
+### 2.5. GET `/api/daily-affirmation`
+Obtiene la afirmación del día sin enviar notificaciones.
 
-**Body:**
+**Respuesta:**
 ```json
 {
-  "secret": "tu-token-secreto-aqui"
+  "affirmation": "Soy luz, soy paz, soy suficiente",
+  "date": "8/5/2026"
 }
 ```
 
-**Respuesta:** Igual a POST `/api/send-daily-ritual`
+### 2.6. POST `/api/daily-affirmation`
+Obtiene la afirmación del día y la envía como notificación push a todos los suscriptores.
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "affirmation": "Soy luz, soy paz, soy suficiente",
+  "sentTo": 5,
+  "total": 10,
+  "date": "2026-05-08",
+  "results": [
+    { "success": true, "endpoint": "..." },
+    { "success": false, "endpoint": "...", "error": "..." }
+  ]
+}
+```
+
+### 3. POST `/api/trigger-ritual-notification`
+Dispara manualmente el envío de notificaciones con autenticación por token.
+
+Soporta 3 tipos:
+
+**Ritual:**
+```json
+{
+  "secret": "tu-token-secreto-aqui",
+  "type": "ritual"
+}
+```
+
+**Afirmación del día:**
+```json
+{
+  "secret": "tu-token-secreto-aqui",
+  "type": "affirmation"
+}
+```
+
+**Manifestación personalizada:**
+```json
+{
+  "secret": "tu-token-secreto-aqui",
+  "type": "manifestation",
+  "message": "El universo conspira a mi favor ✨"
+}
+```
 
 ## Configurar Envío Automático
 
-### Opción 1: Cron Job Externo (Recomendado)
-Usa un servicio como:
-- **EasyCron.com**
-- **AWS EventBridge**
-- **Google Cloud Scheduler**
-- **Vercel Crons** (si usas Vercel)
+### Afirmación Diaria (6:30 AM - Recomendado)
 
-Configura un POST a:
+Configura un cron job para enviar la afirmación del día a las 6:30 AM:
+
+**EasyCron.com:**
 ```
 https://tu-dominio.com/api/trigger-ritual-notification
-Body: { "secret": "tu-token-secreto" }
+Method: POST
+Header: Content-Type: application/json
+Body: { "secret": "tu-token-secreto", "type": "affirmation" }
+Schedule: Daily at 06:30
 ```
+
+**Vercel Crons (`vercel.json`):**
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/send-affirmation",
+      "schedule": "30 6 * * *"
+    }
+  ]
+}
+```
+
+Crea `/app/api/cron/send-affirmation/route.js`:
+```javascript
+import { NextResponse } from 'next/server';
+
+export const maxDuration = 60;
+
+export async function GET(request) {
+  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const response = await fetch(`${baseUrl}/api/daily-affirmation`, {
+    method: 'POST'
+  });
+
+  return response;
+}
+```
+
+### Otros Cron Jobs
+
+**Ritual Aleatorio (ejemplo: 7 AM):**
+```bash
+curl -X POST https://tu-dominio.com/api/trigger-ritual-notification \
+  -H "Content-Type: application/json" \
+  -d '{"secret":"tu-token-secreto", "type":"ritual"}'
+```
+
+**Cron Job Externo Personalizado:**
+- **EasyCron.com**: Configura POST a `https://tu-dominio.com/api/trigger-ritual-notification`
+- **AWS EventBridge**: Crea regla con destino Lambda → fetch a tu API
+- **Google Cloud Scheduler**: Job con HTTP target
 
 ### Opción 2: Next.js API Routes con Cron (Vercel)
 Crea un archivo `/app/api/cron/send-ritual-notification/route.js`:
@@ -121,7 +217,7 @@ Luego en `vercel.json`:
   "crons": [
     {
       "path": "/api/cron/send-ritual-notification",
-      "schedule": "0 6 * * *"
+      "schedule": "0 7 * * *"
     }
   ]
 }
@@ -149,16 +245,44 @@ CREATE TABLE subscriptions (
 ## Testing Local
 
 ```bash
+# ═══════════════════════════════════════════════════════════════
+# 🌙 RITUALES
+# ═══════════════════════════════════════════════════════════════
+
 # Obtener un ritual sin notificaciones
 curl http://localhost:3000/api/send-daily-ritual
 
-# Enviar notificaciones a todos los suscriptores
+# Enviar ritual aleatorio con notificaciones a suscriptores
 curl -X POST http://localhost:3000/api/send-daily-ritual
 
-# Disparar con token (para testing)
+# Disparar ritual con token
 curl -X POST http://localhost:3000/api/trigger-ritual-notification \
   -H "Content-Type: application/json" \
-  -d '{"secret":"tu-token-secreto-aqui"}'
+  -d '{"secret":"9a2c097b209792b0ac2fe4f7d3697e6cea09ce77d666176e6493d31333790fde", "type":"ritual"}'
+
+# ═══════════════════════════════════════════════════════════════
+# 💫 AFIRMACIONES DIARIAS
+# ═══════════════════════════════════════════════════════════════
+
+# Obtener afirmación del día sin notificaciones
+curl http://localhost:3000/api/daily-affirmation
+
+# Enviar afirmación del día con notificaciones a suscriptores
+curl -X POST http://localhost:3000/api/daily-affirmation
+
+# Disparar afirmación con token (la que se debería enviar cada mañana)
+curl -X POST http://localhost:3000/api/trigger-ritual-notification \
+  -H "Content-Type: application/json" \
+  -d '{"secret":"9a2c097b209792b0ac2fe4f7d3697e6cea09ce77d666176e6493d31333790fde", "type":"affirmation"}'
+
+# ═══════════════════════════════════════════════════════════════
+# 🌙 MANIFESTACIONES
+# ═══════════════════════════════════════════════════════════════
+
+# Disparar manifestación personalizada con token
+curl -X POST http://localhost:3000/api/trigger-ritual-notification \
+  -H "Content-Type: application/json" \
+  -d '{"secret":"9a2c097b209792b0ac2fe4f7d3697e6cea09ce77d666176e6493d31333790fde", "type":"manifestation", "message":"El universo conspira a mi favor ✨"}'
 ```
 
 ## Troubleshooting
