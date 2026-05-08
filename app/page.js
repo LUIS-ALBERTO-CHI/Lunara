@@ -37,7 +37,13 @@ export default function Home() {
   const [meditationTimeLeft, setMeditationTimeLeft] = useState(60);
   const [isMeditating, setIsMeditating] = useState(false);
   const [breathAction, setBreathAction] = useState('Respira profundo');
-  const [moonPhase, setMoonPhase] = useState('Sintonizando astros...');
+  const [astroData, setAstroData] = useState({
+    phase: 'Sintonizando astros...',
+    illumination: '--',
+    sign: '...',
+    moonrise: '--',
+    moonset: '--'
+  });
   const [activeTab, setActiveTab] = useState('universo');
   const audioRef = useRef(null);
   
@@ -151,18 +157,30 @@ export default function Home() {
       setCanRequestRitual(false);
     }
 
-    // Obtener la fase lunar real enviando el signo Libra como parámetro
-    const fetchMoonPhase = async () => {
+    // Obtener información astrológica detallada (AstroApi)
+    const fetchAstroData = async () => {
       try {
-        const res = await fetch('/api/moon-phase?sign=libra');
-        const data = await res.json();
-        if (data.phase) setMoonPhase(data.phase);
+        const res = await fetch('/api/astro-info');
+        const contentType = res.headers.get("content-type");
+
+        // Verificamos que la respuesta sea correcta y que realmente sea un JSON
+        if (res.ok && contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          if (data.phase) setAstroData(data);
+        } else {
+          // Fallback si la ruta no existe o devuelve un HTML de error (404)
+          setAstroData({
+            phase: 'Creciente', illumination: '65%', sign: 'Libra', moonrise: '18:30', moonset: '06:15'
+          });
+        }
       } catch (error) {
-        console.error('Error al obtener fase lunar:', error);
-        setMoonPhase('Creciente en Libra'); // Fallback en caso de error
+        console.error('Error al obtener datos astrológicos:', error);
+        setAstroData({
+          phase: 'Creciente', illumination: '65%', sign: 'Libra', moonrise: '18:30', moonset: '06:15'
+        });
       }
     };
-    fetchMoonPhase();
+    fetchAstroData();
 
     return () => clearInterval(interval);
   }, []);
@@ -288,12 +306,10 @@ export default function Home() {
   return (
     <>
       {/* TopAppBar */}
-      <header className="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-2xl text-primary dark:text-primary-fixed-dim docked full-width top-0 sticky z-50 border-b border-white/20 dark:border-outline/10 shadow-[0_4px_30px_rgba(114,84,119,0.1)] flex justify-between items-center px-3 sm:px-gutter w-full h-14 sm:h-16">
-        <div className="flex items-center gap-1 sm:gap-2">
-          <svg width="20" height="20" className="sm:w-6 sm:h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
-          <span className="font-semibold text-base sm:text-lg italic text-primary dark:text-primary-fixed">Vighnaharta</span>
-        </div>
-        <div className="flex items-center gap-4">
+      <header className="relative bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-2xl text-primary dark:text-primary-fixed-dim docked full-width top-0 sticky z-50 border-b border-white/20 dark:border-outline/10 shadow-[0_4px_30px_rgba(114,84,119,0.1)] flex justify-between items-center px-3 sm:px-gutter w-full h-14 sm:h-16">
+        
+        {/* Lado Izquierdo: Perfil y Logout / Auth */}
+        <div className="flex items-center z-10">
           {user ? (
             <div className="flex items-center gap-2">
               <button
@@ -319,11 +335,26 @@ export default function Home() {
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+              className="px-4 py-1.5 sm:py-2 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs sm:text-sm font-semibold hover:bg-primary/20 transition-colors"
             >
               Iniciar Sesión
             </button>
           )}
+        </div>
+
+        {/* Centro: Título de la App */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-0">
+          <span className="font-semibold text-base sm:text-lg italic text-primary dark:text-primary-fixed">Vighnaharta</span>
+        </div>
+
+        {/* Lado Derecho: Configuraciones (Settings) */}
+        <div className="flex items-center z-10">
+          <button className="w-10 h-10 flex items-center justify-center text-primary/80 hover:text-primary hover:bg-primary/10 rounded-full transition-all active:scale-95" title="Ajustes">
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
+            </svg>
+          </button>
         </div>
       </header>
       
@@ -391,17 +422,38 @@ export default function Home() {
           </button>
         </section>
 
-        {/* Insights / Mini Cards */}
-        <section className="mt-3 sm:mt-gutter space-y-3">
-          <div className="glass p-3 sm:p-gutter rounded-lg flex items-center gap-3 sm:gap-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-tertiary-container/30 rounded-full flex items-center justify-center text-tertiary flex-shrink-0">
-              <svg width="16" height="16" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        {/* Astro Insights / Mini Cards */}
+        <section className="mt-3 sm:mt-gutter grid grid-cols-2 gap-2 sm:gap-4 relative z-10">
+          {/* Tarjeta Principal: Fase y Signo */}
+          <div className="glass p-3 sm:p-4 rounded-lg flex items-center gap-3 sm:gap-4 col-span-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-tertiary-container/30 rounded-full flex items-center justify-center text-tertiary flex-shrink-0 border border-white/40">
+              <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-on-surface-variant opacity-70 font-semibold">Luna Actual</p>
-              <p className="text-xs sm:text-base text-on-surface truncate">{moonPhase}</p>
+              <p className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-semibold uppercase tracking-widest">Luna en {astroData.sign}</p>
+              <p className="text-sm sm:text-lg text-on-surface font-semibold truncate capitalize">{astroData.phase}</p>
             </div>
-            <svg width="16" height="16" className="sm:w-6 sm:h-6 text-primary/30 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <div className="text-right flex flex-col items-end">
+              <span className="text-[10px] sm:text-xs text-primary font-bold px-2 py-1 bg-primary-container/50 rounded-full border border-primary/10">{astroData.illumination} Luz</span>
+            </div>
+          </div>
+
+          {/* Tarjeta: Amanecer Lunar */}
+          <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
+            <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Amanecer Lunar</span>
+            <div className="flex items-center gap-2 text-primary">
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="M8 6l4-4 4 4"/><path d="M2 22h20"/></svg>
+              <span className="text-sm sm:text-base font-semibold">{astroData.moonrise}</span>
+            </div>
+          </div>
+
+          {/* Tarjeta: Ocaso Lunar */}
+          <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
+            <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Ocaso Lunar</span>
+            <div className="flex items-center gap-2 text-secondary">
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-8"/><path d="M8 18l4 4 4-4"/><path d="M2 2h20"/></svg>
+              <span className="text-sm sm:text-base font-semibold">{astroData.moonset}</span>
+            </div>
           </div>
         </section>
       </main>

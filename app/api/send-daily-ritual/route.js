@@ -10,8 +10,6 @@ export async function GET() {
     const apiData = await apiRes.json();
     const quoteEn = apiData.quote;
 
-    console.log('Frase en inglés obtenida:', quoteEn);
-
     // 2. Traducirla al español usando la API pública de Google Translate
     const translateRes = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(quoteEn)}`, 
