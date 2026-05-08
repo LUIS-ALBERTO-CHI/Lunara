@@ -4,14 +4,22 @@ export async function GET() {
   try {
     // 1. Obtener la frase en inglés de la API externa
     const apiRes = await fetch('https://dummyjson.com/quotes/random', { cache: 'no-store' });
+    if (!apiRes.ok) {
+      return NextResponse.json({ ritual: "Respira profundo y agradece por un nuevo día. El universo te guía." });
+    }
     const apiData = await apiRes.json();
     const quoteEn = apiData.quote;
+
+    console.log('Frase en inglés obtenida:', quoteEn);
 
     // 2. Traducirla al español usando la API pública de Google Translate
     const translateRes = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(quoteEn)}`, 
       { cache: 'no-store' }
     );
+    if (!translateRes.ok) {
+      return NextResponse.json({ ritual: "Respira profundo y agradece por un nuevo día. El universo te guía." });
+    }
     const translateData = await translateRes.json();
     
     // 3. Extraer el texto traducido del arreglo de respuesta de Google

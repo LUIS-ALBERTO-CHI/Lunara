@@ -209,13 +209,23 @@ export default function Home() {
 
     try {
       const res = await fetch('/api/send-daily-ritual');
-      const data = await res.json();
-      const ritual = data.ritual || "Respira profundo y agradece por un nuevo día.";
-      
-      setRitualContent(ritual);
-      localStorage.setItem('lastRitualTime', now.toString());
-      localStorage.setItem('savedRitual', ritual);
-      setCanRequestRitual(false);
+      const contentType = res.headers.get("content-type");
+
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        const ritual = data.ritual || "Respira profundo y agradece por un nuevo día.";
+        
+        setRitualContent(ritual);
+        localStorage.setItem('lastRitualTime', now.toString());
+        localStorage.setItem('savedRitual', ritual);
+        setCanRequestRitual(false);
+      } else {
+        // Si recibimos HTML o un error del servidor, usamos un mensaje por defecto
+        setRitualContent("Respira profundo y agradece por un nuevo día. El universo te guía.");
+        localStorage.setItem('lastRitualTime', now.toString());
+        localStorage.setItem('savedRitual', "Respira profundo y agradece por un nuevo día. El universo te guía.");
+        setCanRequestRitual(false);
+      }
     } catch (error) {
       console.error('Error obteniendo el ritual:', error);
       setRitualContent('Hubo un desequilibrio cósmico. Inténtalo de nuevo.');
