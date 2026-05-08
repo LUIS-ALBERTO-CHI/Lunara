@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Positiva',
-  description: 'Positiva App Espiritual',
+  title: 'vighnaharta',
+  description: 'vighnaharta App Espiritual',
   manifest: '/manifest.json',
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
     <html lang="es" className="light">
       <head>
         <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Newsreader:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet"/>
         <script dangerouslySetInnerHTML={{
           __html: `
             tailwind.config = {
@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
                   },
                   borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
                   spacing: { "unit": "8px", "gutter": "16px", "container-padding": "24px", "section-gap": "48px" },
-                  fontFamily: { "h2": ["Newsreader"], "body-lg": ["plusJakartaSans"], "body-md": ["plusJakartaSans"], "h3": ["Newsreader"], "h1": ["Newsreader"], "label-sm": ["plusJakartaSans"] },
+                  fontFamily: { "h2": ["Newsreader"], "body-lg": ["Montserrat"], "body-md": ["Montserrat"], "h3": ["Newsreader"], "h1": ["Newsreader"], "label-sm": ["Montserrat"] },
                   fontSize: {
                     "h2": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500"}],
                     "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],

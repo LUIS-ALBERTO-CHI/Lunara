@@ -24,6 +24,20 @@ export default function Home() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [energyData, setEnergyData] = useState({
+    title: 'Cargando tu energía...',
+    message: 'Sintonizando con el universo...'
+  });
+  const [isLoadingEnergy, setIsLoadingEnergy] = useState(true);
+  const [canRequestRitual, setCanRequestRitual] = useState(true);
+  const [showRitualModal, setShowRitualModal] = useState(false);
+  const [ritualContent, setRitualContent] = useState('');
+  const [isLoadingRitual, setIsLoadingRitual] = useState(false);
+  const [showMeditationModal, setShowMeditationModal] = useState(false);
+  const [meditationTimeLeft, setMeditationTimeLeft] = useState(60);
+  const [isMeditating, setIsMeditating] = useState(false);
+  const [breathAction, setBreathAction] = useState('Respira profundo');
+  const [moonPhase, setMoonPhase] = useState('Sintonizando astros...');
   
   useEffect(() => {
     // Obtener la afirmación del día desde localStorage o la API
@@ -85,6 +99,23 @@ export default function Home() {
 
     fetchAffirmation();
 
+    // Obtener la energía diaria dinámica
+    const fetchEnergy = async () => {
+      try {
+        const res = await fetch('/api/daily-energy');
+        const data = await res.json();
+        if (data.title && data.message) {
+          setEnergyData({ title: data.title, message: data.message });
+        }
+      } catch (error) {
+        console.error('Error al obtener energía:', error);
+        setEnergyData({ title: 'Tu Universo está en calma', message: 'Alma Estelar, tu energía vibra hoy en 980 Hz' });
+      } finally {
+        setIsLoadingEnergy(false);
+      }
+    };
+    fetchEnergy();
+
     // Configurar intervalo para verificar cada hora si es hora de actualizar
     const interval = setInterval(() => {
       const now = new Date();
@@ -112,45 +143,93 @@ export default function Home() {
       });
     }
 
+    // Comprobar si ya se pidió el ritual en las últimas 24 horas al cargar la página
+    const lastRitual = localStorage.getItem('lastRitualTime');
+    if (lastRitual && (new Date().getTime() - parseInt(lastRitual)) < 86400000) {
+      setCanRequestRitual(false);
+    }
+
+    // Obtener la fase lunar real enviando el signo Libra como parámetro
+    const fetchMoonPhase = async () => {
+      try {
+        const res = await fetch('/api/moon-phase?sign=libra');
+        const data = await res.json();
+        if (data.phase) setMoonPhase(data.phase);
+      } catch (error) {
+        console.error('Error al obtener fase lunar:', error);
+        setMoonPhase('Creciente en Libra'); // Fallback en caso de error
+      }
+    };
+    fetchMoonPhase();
+
     return () => clearInterval(interval);
   }, []);
 
-  const subscribeUser = async () => {
+  // Efecto para manejar el temporizador de la meditación y las fases de respiración
+  useEffect(() => {
+    let interval;
+    if (isMeditating && meditationTimeLeft > 0) {
+      interval = setInterval(() => {
+        setMeditationTimeLeft((prev) => {
+          const newTime = prev - 1;
+          // Ciclo de 8 segundos (4s Inhala, 4s Exhala)
+          if (newTime % 8 >= 4) setBreathAction('Inhala...');
+          else setBreathAction('Exhala...');
+          return newTime;
+        });
+      }, 1000);
+    } else if (meditationTimeLeft === 0 && isMeditating) {
+      setBreathAction('¡Completado!');
+      setIsMeditating(false);
+    }
+    return () => clearInterval(interval);
+  }, [isMeditating, meditationTimeLeft]);
+
+  const handleMorningRitual = async () => {
+    const lastRitualTime = localStorage.getItem('lastRitualTime');
+    const savedRitual = localStorage.getItem('savedRitual');
+    const now = new Date().getTime();
+
+    // Si ya hay un ritual guardado y no han pasado 24h
+    if (lastRitualTime && savedRitual && (now - parseInt(lastRitualTime)) < 86400000) {
+      setRitualContent(savedRitual);
+      setShowRitualModal(true);
+      return;
+    }
+
+    // Si es nuevo, abrimos el modal en estado de carga
+    setIsLoadingRitual(true);
+    setShowRitualModal(true);
+
     try {
-      // Pedimos permiso explícitamente al usuario
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        alert('Debes aceptar los permisos para recibir notificaciones.');
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
+      const res = await fetch('/api/daily-ritual');
+      const data = await res.json();
+      const ritual = data.ritual || "Respira profundo y agradece por un nuevo día.";
       
-      // Suscribimos el dispositivo a los servicios de push del navegador (ej. Chrome, Safari)
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY),
-      });
-
-      // Enviamos el objeto de suscripción a nuestra API para guardarlo en Neon
-      await fetch('/api/subscribe', {
-        method: 'POST',
-        body: JSON.stringify(subscription),
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      setIsSubscribed(true);
-      alert('¡Suscrito correctamente!');
+      setRitualContent(ritual);
+      localStorage.setItem('lastRitualTime', now.toString());
+      localStorage.setItem('savedRitual', ritual);
+      setCanRequestRitual(false);
     } catch (error) {
-      console.error('Error al suscribir:', error);
-      alert('El usuario bloqueó las notificaciones o hubo un error.');
+      console.error('Error obteniendo el ritual:', error);
+      setRitualContent('Hubo un desequilibrio cósmico. Inténtalo de nuevo.');
+    } finally {
+      setIsLoadingRitual(false);
     }
   };
 
-  const sendTestPush = async () => {
-    const res = await fetch('/api/send-test', { method: 'POST' });
-    const data = await res.json();
-    alert(`Notificaciones enviadas a ${data.count} dispositivo(s).`);
+  const handleOpenMeditation = () => {
+    setShowMeditationModal(true);
+    setMeditationTimeLeft(60); // 1 minuto
+    setIsMeditating(false);
+    setBreathAction('Respira profundo');
+  };
+
+  const startMeditation = () => setIsMeditating(true);
+
+  const closeMeditation = () => {
+    setShowMeditationModal(false);
+    setIsMeditating(false);
   };
 
   const handleAuthSuccess = (userData) => {
@@ -179,7 +258,7 @@ export default function Home() {
       <header className="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-2xl text-primary dark:text-primary-fixed-dim docked full-width top-0 sticky z-50 border-b border-white/20 dark:border-outline/10 shadow-[0_4px_30px_rgba(114,84,119,0.1)] flex justify-between items-center px-3 sm:px-gutter w-full h-14 sm:h-16">
         <div className="flex items-center gap-1 sm:gap-2">
           <svg width="20" height="20" className="sm:w-6 sm:h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
-          <span className="font-semibold text-base sm:text-lg italic text-primary dark:text-primary-fixed">Positiva</span>
+          <span className="font-semibold text-base sm:text-lg italic text-primary dark:text-primary-fixed">Vighnaharta</span>
         </div>
         <div className="flex items-center gap-4">
           {user ? (
@@ -243,7 +322,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-primary-container/40 blur-2xl rounded-full scale-150 -z-10"></div>
             <div className="w-40 sm:w-56 h-40 sm:h-56 rounded-full overflow-hidden celestial-glow border-4 border-white/80 p-2 glass">
               <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-tr from-primary-container to-tertiary-container">
-                <img alt="Compañero Místico" className="w-full h-full object-cover mix-blend-soft-light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqcZiUmuW2INfy-hrCRyWIBmHED266Ex3ydzMcymrDhW-xQY9jzdiBedZdeRE4-VGH8lmmRX-fgcTVA3gJD34aRm_MpFgpHF8TX-9VXWY_4p9yhnuo18lOpdLkZhzQDgMjOsoqwHe6shCr0YYWMoPSpijdYoqyOjAPn_Ao7HpArCsOv6L7pbLueHOZcyVxoePihL9aAOytn7aYOIiDUWMRTC4icOHgPnrGjY90y5qkiTbdQcYDb4PY0DDCQ6XJkEp71G9RkpoST6U"/>
+                <img alt="Pequeño elefante místico" class="w-full h-full object-cover mix-blend-soft-light" data-alt="A cute, mystical baby elephant (Ganesha-inspired) in a soft, ethereal pastel style. The elephant should have a pearlescent lavender skin tone, a tiny golden lotus crown, and be surrounded by a magical aura of sparkles and soft cosmic dust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNfcVTTuz2eKs5PA4qZxqwwfLnsSGwPCB_gsn3EC3Tajm2XObyDuOo_blqgntSc_32Xkg4WzDI0MuBvgHw3ltDBK7okZk0RAMzpYs8_eE-0MhajJAhIbYCtCD9DlSPLpXT2YqVJ4u8J4lyTmE_Asr13sL4z4m9ze8o5h4-UXUg5JV70mVPPR3oTKvU7k2xJZnSFtV39IDR_K1CmC15E9DlGI6l3uM61sk_LGsl_iWUZZ70nDeZUsHsmfyGWjqR7yobc2wz8vAP7YI" />
               </div>
             </div>
             <div className="absolute -top-4 -right-2 text-primary-container animate-pulse">
@@ -254,20 +333,24 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-4 sm:mt-8 text-center">
-            <h3 className="text-lg sm:text-2xl text-primary font-bold">Tu Universo está en calma</h3>
-            <p className="text-xs sm:text-sm text-on-surface-variant opacity-80 mt-1">Alma Estelar, tu energía vibra hoy en 980 Hz</p>
+        <h3 className={`text-lg sm:text-2xl text-primary font-bold transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
+          {energyData.title}
+        </h3>
+        <p className={`text-xs sm:text-sm text-on-surface-variant opacity-80 mt-1 transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
+          {energyData.message}
+        </p>
           </div>
         </section>
 
         {/* Quick Actions Bento Grid */}
         <section className="mt-4 sm:mt-section-gap grid grid-cols-2 gap-2 sm:gap-4">
-          <button onClick={subscribeUser} disabled={isSubscribed} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
+          <button onClick={handleMorningRitual} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 transition-all duration-200 hover:scale-105 active:scale-95 group">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
               <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2v8M4.22 10.22l1.42 1.42M1 18h22M22.78 10.22l-1.42 1.42M8 22h8M12 10a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/></svg>
             </div>
-            <span className="text-xs sm:text-sm text-primary-fixed-variant font-semibold">{isSubscribed ? 'Ritual Activo ✅' : 'Ritual de Mañana'}</span>
+            <span className="text-xs sm:text-sm text-primary-fixed-variant font-semibold">{!canRequestRitual ? 'Ver Ritual de Hoy' : 'Ritual de Mañana'}</span>
           </button>
-          <button onClick={sendTestPush} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
+          <button onClick={handleOpenMeditation} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
               <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
@@ -283,7 +366,7 @@ export default function Home() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-on-surface-variant opacity-70 font-semibold">Luna Actual</p>
-              <p className="text-xs sm:text-base text-on-surface truncate">Creciente en Libra</p>
+              <p className="text-xs sm:text-base text-on-surface truncate">{moonPhase}</p>
             </div>
             <svg width="16" height="16" className="sm:w-6 sm:h-6 text-primary/30 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
@@ -304,6 +387,89 @@ export default function Home() {
         userId={user?.userId}
         onPhotoUpdate={handlePhotoUpdate}
       />
+
+      {/* Ritual Modal */}
+      {showRitualModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4">
+          <div className="glass rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-white/40 text-center relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-fixed/50 blur-2xl rounded-full -z-10"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary-fixed/50 blur-2xl rounded-full -z-10"></div>
+            
+            <button onClick={() => setShowRitualModal(false)} className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-on-surface transition-colors">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <div className="w-14 h-14 bg-gradient-to-tr from-primary-container to-tertiary-container rounded-full flex items-center justify-center mx-auto mb-4 text-primary shadow-inner border border-white/50">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2v8M4.22 10.22l1.42 1.42M1 18h22M22.78 10.22l-1.42 1.42M8 22h8M12 10a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/></svg>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-primary mb-2 font-h2">Tu Ritual de Hoy</h2>
+            <p className="text-xs text-on-surface-variant/70 uppercase tracking-widest font-semibold mb-6">Mensaje del Universo</p>
+
+            {isLoadingRitual ? (
+              <div className="animate-pulse space-y-3 mt-4 mb-8">
+                <div className="h-4 bg-primary/20 rounded w-5/6 mx-auto"></div>
+                <div className="h-4 bg-primary/20 rounded w-4/6 mx-auto"></div>
+                <div className="h-4 bg-primary/20 rounded w-3/6 mx-auto"></div>
+              </div>
+            ) : (
+              <p className="text-on-surface-variant text-base sm:text-lg italic leading-relaxed my-6 font-body-lg">
+                "{ritualContent}"
+              </p>
+            )}
+            
+            <button onClick={() => setShowRitualModal(false)} className="w-full px-6 py-3 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+              Agradecer y Continuar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Meditation Modal */}
+      {showMeditationModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-4 transition-all">
+          <div className="glass rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-white/30 text-center relative overflow-hidden flex flex-col items-center">
+            <button onClick={closeMeditation} className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-on-surface transition-colors z-50">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <h2 className="text-2xl font-bold text-secondary mb-1 font-h2">Meditación Flash</h2>
+            <p className="text-sm text-on-surface-variant/70 mb-10 font-medium tracking-wide">Un minuto para volver a ti</p>
+
+            <div className="relative w-48 h-48 flex items-center justify-center mb-10">
+              {/* Círculo animado de respiración */}
+              <div className={`absolute inset-0 bg-secondary-container/50 rounded-full transition-transform duration-[4000ms] ease-in-out ${isMeditating && breathAction.includes('Inhala') ? 'scale-[1.7]' : 'scale-100'}`}></div>
+              <div className="absolute inset-6 bg-secondary-fixed rounded-full shadow-[0_0_30px_rgba(228,223,255,0.4)] flex items-center justify-center z-10">
+                <span className="text-4xl font-light text-secondary font-h1">{meditationTimeLeft}s</span>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-medium text-on-surface mb-8 h-8 transition-opacity font-h3 italic">
+              {breathAction}
+            </h3>
+
+            {!isMeditating && meditationTimeLeft > 0 ? (
+              <button onClick={startMeditation} className="w-full px-6 py-3.5 bg-secondary text-on-secondary rounded-xl text-sm font-semibold hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-secondary/20">
+                Comenzar
+              </button>
+            ) : meditationTimeLeft === 0 ? (
+              <button onClick={closeMeditation} className="w-full px-6 py-3.5 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+                Finalizar y Agradecer
+              </button>
+            ) : (
+              <button onClick={closeMeditation} className="w-full px-6 py-3 bg-surface/30 text-on-surface rounded-xl text-sm font-semibold hover:bg-surface/50 transition-all border border-white/20">
+                Pausar y Salir
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* BottomNavBar */}
       <nav className="fixed bottom-4 sm:bottom-6 left-0 right-0 flex justify-around items-center h-16 sm:h-20 z-50 px-2 sm:px-4 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[95%] sm:w-[92%]">
