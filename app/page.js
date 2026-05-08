@@ -208,7 +208,7 @@ export default function Home() {
     setShowRitualModal(true);
 
     try {
-      const res = await fetch('/api/daily-ritual');
+      const res = await fetch('/api/send-daily-ritual');
       const data = await res.json();
       const ritual = data.ritual || "Respira profundo y agradece por un nuevo día.";
       
