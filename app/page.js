@@ -338,8 +338,14 @@ export default function Home() {
         // Desuscribirse
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
+          // Avisar a la base de datos (Neon) para borrar esta suscripción
+          await fetch('/api/subscribe', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint })
+          });
+          
           await subscription.unsubscribe();
-          // TODO: Avisar a la base de datos (Neon) para borrar esta suscripción
         }
         setIsSubscribed(false);
       } else {
@@ -359,8 +365,16 @@ export default function Home() {
           applicationServerKey: convertedVapidKey
         });
         
-        // TODO: Enviar 'subscription' a tu backend para guardarla en la tabla 'subscriptions'
-        console.log('Suscripción generada:', JSON.stringify(subscription));
+        // Enviar 'subscription' a tu backend para guardarla en la tabla 'subscriptions'
+        await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: subscription.endpoint,
+            keys: subscription.toJSON().keys
+          })
+        });
+        
         setIsSubscribed(true);
       }
     } catch (error) {

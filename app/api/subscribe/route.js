@@ -19,3 +19,19 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const { endpoint } = await request.json();
+    
+    // Eliminamos la suscripción de Neon
+    await sql`
+      DELETE FROM subscriptions WHERE endpoint = ${endpoint};
+    `;
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error eliminando suscripción:', error);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
+}
