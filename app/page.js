@@ -339,12 +339,12 @@ export default function Home() {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
           // Avisar a la base de datos (Neon) para borrar esta suscripción
-          await fetch('/api/subscribe', {
-            method: 'DELETE',
+          await fetch('/api/push/unsubscribe', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ endpoint: subscription.endpoint })
           });
-          
+
           await subscription.unsubscribe();
         }
         setIsSubscribed(false);
@@ -366,13 +366,10 @@ export default function Home() {
         });
         
         // Enviar 'subscription' a tu backend para guardarla en la tabla 'subscriptions'
-        await fetch('/api/subscribe', {
+        await fetch('/api/push/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: subscription.endpoint,
-            keys: subscription.toJSON().keys
-          })
+          body: JSON.stringify({ subscription })
         });
         
         setIsSubscribed(true);
@@ -456,18 +453,20 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Botón de Cerrar Sesión */}
             {user && (
-              <button 
-                onClick={() => {
-                  handleLogout();
-                  setShowSettings(false);
-                }} 
-                className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 bg-error/10 text-error hover:bg-error/20 rounded-xl text-sm font-semibold transition-colors"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Cerrar Sesión
-              </button>
+              <div className="flex flex-col gap-2 mt-2">
+                {/* Botón de Cerrar Sesión */}
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setShowSettings(false);
+                  }} 
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-error/10 text-error hover:bg-error/20 rounded-xl text-sm font-semibold transition-colors"
+                >
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  Cerrar Sesión
+                </button>
+              </div>
             )}
           </div>
         )}
