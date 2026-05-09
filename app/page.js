@@ -46,6 +46,8 @@ export default function Home() {
     moonset: '--'
   });
   const [activeTab, setActiveTab] = useState('universo');
+  const [isDrawingCard, setIsDrawingCard] = useState(false);
+  const [drawnCard, setDrawnCard] = useState(null);
   const audioRef = useRef(null);
   
   useEffect(() => {
@@ -325,6 +327,21 @@ export default function Home() {
     localStorage.removeItem('user');
   };
 
+  const handleDrawCard = async () => {
+    setIsDrawingCard(true);
+    try {
+      const res = await fetch('/api/oracle-draw');
+      if (res.ok) {
+        const data = await res.json();
+        setDrawnCard(data);
+      }
+    } catch (error) {
+      console.error('Error al sacar la carta:', error);
+    } finally {
+      setIsDrawingCard(false);
+    }
+  };
+
   const handleToggleNotifications = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       alert('Las notificaciones push no están soportadas en tu navegador.');
@@ -477,99 +494,178 @@ export default function Home() {
         <div className="absolute top-10 sm:top-20 -left-20 sm:-left-10 w-32 sm:w-40 h-32 sm:h-40 bg-primary-fixed/30 blur-3xl rounded-full -z-10"></div>
         <div className="absolute bottom-32 sm:bottom-40 -right-20 sm:-right-10 w-40 sm:w-60 h-40 sm:h-60 bg-secondary-fixed/30 blur-3xl rounded-full -z-10"></div>
         
-        {/* Affirmation Card */}
-        <section className="mb-4 sm:mb-section-gap relative z-10">
-          <div className="glass p-4 sm:p-container-padding rounded-lg shadow-[0_10px_40px_rgba(114,84,119,0.1)] border-t border-l border-white/60">
-            <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
-              <span className="text-xs sm:text-sm text-primary tracking-widest uppercase font-semibold">Afirmación del Día</span>
-              <h2 className={`text-base sm:text-2xl text-on-surface-variant italic transition-opacity font-semibold leading-relaxed ${isLoadingAffirmation ? 'opacity-60' : 'opacity-100'}`}>
-                "{affirmation}"
-              </h2>
-              <div className="flex gap-2">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+        {activeTab === 'universo' && (
+          <div className="w-full transition-all duration-300">
+            {/* Affirmation Card */}
+            <section className="mb-4 sm:mb-section-gap relative z-10">
+              <div className="glass p-4 sm:p-container-padding rounded-lg shadow-[0_10px_40px_rgba(114,84,119,0.1)] border-t border-l border-white/60">
+                <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
+                  <span className="text-xs sm:text-sm text-primary tracking-widest uppercase font-semibold">Afirmación del Día</span>
+                  <h2 className={`text-base sm:text-2xl text-on-surface-variant italic transition-opacity font-semibold leading-relaxed ${isLoadingAffirmation ? 'opacity-60' : 'opacity-100'}`}>
+                    "{affirmation}"
+                  </h2>
+                  <div className="flex gap-2">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        {/* Companion Section */}
-        <section className="flex flex-col items-center justify-center py-4 sm:py-unit relative h-60 sm:h-80">
-          <div className="organic-float relative">
-            <div className="absolute inset-0 bg-primary-container/40 blur-2xl rounded-full scale-150 -z-10"></div>
-            <div className="w-40 sm:w-56 h-40 sm:h-56 rounded-full overflow-hidden celestial-glow border-4 border-white/80 p-2 glass">
-              <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-tr from-primary-container to-tertiary-container">
-                <img alt="Pequeño elefante místico" className="w-full h-full object-cover mix-blend-soft-light" data-alt="A cute, mystical baby elephant (Ganesha-inspired) in a soft, ethereal pastel style. The elephant should have a pearlescent lavender skin tone, a tiny golden lotus crown, and be surrounded by a magical aura of sparkles and soft cosmic dust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNfcVTTuz2eKs5PA4qZxqwwfLnsSGwPCB_gsn3EC3Tajm2XObyDuOo_blqgntSc_32Xkg4WzDI0MuBvgHw3ltDBK7okZk0RAMzpYs8_eE-0MhajJAhIbYCtCD9DlSPLpXT2YqVJ4u8J4lyTmE_Asr13sL4z4m9ze8o5h4-UXUg5JV70mVPPR3oTKvU7k2xJZnSFtV39IDR_K1CmC15E9DlGI6l3uM61sk_LGsl_iWUZZ70nDeZUsHsmfyGWjqR7yobc2wz8vAP7YI" />
+            {/* Companion Section */}
+            <section className="flex flex-col items-center justify-center py-4 sm:py-unit relative h-60 sm:h-80">
+              <div className="organic-float relative">
+                <div className="absolute inset-0 bg-primary-container/40 blur-2xl rounded-full scale-150 -z-10"></div>
+                <div className="w-40 sm:w-56 h-40 sm:h-56 rounded-full overflow-hidden celestial-glow border-4 border-white/80 p-2 glass">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-tr from-primary-container to-tertiary-container">
+                    <img alt="Pequeño elefante místico" className="w-full h-full object-cover mix-blend-soft-light" data-alt="A cute, mystical baby elephant (Ganesha-inspired) in a soft, ethereal pastel style. The elephant should have a pearlescent lavender skin tone, a tiny golden lotus crown, and be surrounded by a magical aura of sparkles and soft cosmic dust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNfcVTTuz2eKs5PA4qZxqwwfLnsSGwPCB_gsn3EC3Tajm2XObyDuOo_blqgntSc_32Xkg4WzDI0MuBvgHw3ltDBK7okZk0RAMzpYs8_eE-0MhajJAhIbYCtCD9DlSPLpXT2YqVJ4u8J4lyTmE_Asr13sL4z4m9ze8o5h4-UXUg5JV70mVPPR3oTKvU7k2xJZnSFtV39IDR_K1CmC15E9DlGI6l3uM61sk_LGsl_iWUZZ70nDeZUsHsmfyGWjqR7yobc2wz8vAP7YI" />
+                  </div>
+                </div>
+                <div className="absolute -top-4 -right-2 text-primary-container animate-pulse">
+                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
+                </div>
+                <div className="absolute -bottom-2 -left-4 text-secondary-container">
+                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
               </div>
-            </div>
-            <div className="absolute -top-4 -right-2 text-primary-container animate-pulse">
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 7 7 0 0 1-10-10z"/></svg>
-            </div>
-            <div className="absolute -bottom-2 -left-4 text-secondary-container">
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-          </div>
-          <div className="mt-4 sm:mt-8 text-center">
-        <h3 className={`text-lg sm:text-2xl text-primary font-bold transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
-          {energyData.title}
-        </h3>
-        <p className={`text-xs sm:text-sm text-on-surface-variant opacity-80 mt-1 transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
-          {energyData.message}
-        </p>
-          </div>
-        </section>
+              <div className="mt-4 sm:mt-8 text-center">
+                <h3 className={`text-lg sm:text-2xl text-primary font-bold transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
+                  {energyData.title}
+                </h3>
+                <p className={`text-xs sm:text-sm text-on-surface-variant opacity-80 mt-1 transition-opacity duration-500 ${isLoadingEnergy ? 'opacity-60' : 'opacity-100'}`}>
+                  {energyData.message}
+                </p>
+              </div>
+            </section>
 
-        {/* Quick Actions Bento Grid */}
-        <section className="mt-4 sm:mt-section-gap grid grid-cols-2 gap-2 sm:gap-4">
-          <button onClick={handleMorningRitual} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 transition-all duration-200 hover:scale-105 active:scale-95 group">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-              <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2v8M4.22 10.22l1.42 1.42M1 18h22M22.78 10.22l-1.42 1.42M8 22h8M12 10a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/></svg>
-            </div>
-            <span className="text-xs sm:text-sm text-primary-fixed-variant font-semibold">{!canRequestRitual ? 'Ver Ritual de Hoy' : 'Ritual de Mañana'}</span>
-          </button>
-          <button onClick={handleOpenMeditation} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
-              <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <span className="text-xs sm:text-sm text-on-secondary-fixed-variant font-semibold">Meditación Flash</span>
-          </button>
-        </section>
+            {/* Quick Actions Bento Grid */}
+            <section className="mt-4 sm:mt-section-gap grid grid-cols-2 gap-2 sm:gap-4">
+              <button onClick={handleMorningRitual} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 transition-all duration-200 hover:scale-105 active:scale-95 group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                  <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 2v8M4.22 10.22l1.42 1.42M1 18h22M22.78 10.22l-1.42 1.42M8 22h8M12 10a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/></svg>
+                </div>
+                <span className="text-xs sm:text-sm text-primary-fixed-variant font-semibold">{!canRequestRitual ? 'Ver Ritual de Hoy' : 'Ritual de Mañana'}</span>
+              </button>
+              <button onClick={handleOpenMeditation} className="glass p-3 sm:p-container-padding rounded-lg flex flex-col items-center gap-2 sm:gap-3 hover:scale-105 transition-all group active:scale-95 duration-200">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
+                  <svg width="18" height="18" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <span className="text-xs sm:text-sm text-on-secondary-fixed-variant font-semibold">Meditación Flash</span>
+              </button>
+            </section>
 
-        {/* Astro Insights / Mini Cards */}
-        <section className="mt-3 sm:mt-gutter grid grid-cols-2 gap-2 sm:gap-4 relative z-10">
-          {/* Tarjeta Principal: Fase y Signo */}
-          <div className="glass p-3 sm:p-4 rounded-lg flex items-center gap-3 sm:gap-4 col-span-2">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-tertiary-container/30 rounded-full flex items-center justify-center text-tertiary flex-shrink-0 border border-white/40">
-              <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            {/* Astro Insights / Mini Cards */}
+            <section className="mt-3 sm:mt-gutter grid grid-cols-2 gap-2 sm:gap-4 relative z-10">
+              {/* Tarjeta Principal: Fase y Signo */}
+              <div className="glass p-3 sm:p-4 rounded-lg flex items-center gap-3 sm:gap-4 col-span-2">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-tertiary-container/30 rounded-full flex items-center justify-center text-tertiary flex-shrink-0 border border-white/40">
+                  <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-semibold uppercase tracking-widest">Luna en {astroData.sign}</p>
+                  <p className="text-sm sm:text-lg text-on-surface font-semibold truncate capitalize">{astroData.phase}</p>
+                </div>
+                <div className="text-right flex flex-col items-end">
+                  <span className="text-[10px] sm:text-xs text-primary font-bold px-2 py-1 bg-primary-container/50 rounded-full border border-primary/10">{astroData.illumination} Luz</span>
+                </div>
+              </div>
+
+              {/* Tarjeta: Amanecer Lunar */}
+              <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
+                <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Amanecer Lunar</span>
+                <div className="flex items-center gap-2 text-primary">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="M8 6l4-4 4 4"/><path d="M2 22h20"/></svg>
+                  <span className="text-sm sm:text-base font-semibold">{astroData.moonrise}</span>
+                </div>
+              </div>
+
+              {/* Tarjeta: Ocaso Lunar */}
+              <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
+                <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Ocaso Lunar</span>
+                <div className="flex items-center gap-2 text-secondary">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-8"/><path d="M8 18l4 4 4-4"/><path d="M2 2h20"/></svg>
+                  <span className="text-sm sm:text-base font-semibold">{astroData.moonset}</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+        
+        {activeTab === 'oraculo' && (
+          <div className="flex flex-col items-center justify-center pt-4 sm:pt-8 w-full transition-all duration-300">
+            <div className="text-center mb-8 sm:mb-12 max-w-2xl">
+              <h2 className="font-h2 text-2xl sm:text-3xl text-primary mb-3">El Oráculo</h2>
+              <p className="font-body-md text-sm sm:text-base text-on-surface-variant">Conecta con tu intuición. Selecciona una carta para revelar el mensaje que el universo tiene para ti hoy.</p>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-semibold uppercase tracking-widest">Luna en {astroData.sign}</p>
-              <p className="text-sm sm:text-lg text-on-surface font-semibold truncate capitalize">{astroData.phase}</p>
-            </div>
-            <div className="text-right flex flex-col items-end">
-              <span className="text-[10px] sm:text-xs text-primary font-bold px-2 py-1 bg-primary-container/50 rounded-full border border-primary/10">{astroData.illumination} Luz</span>
+            
+            {!drawnCard ? (
+              /* Cards Deck (Interactive Area) */
+              <div 
+                onClick={!isDrawingCard ? handleDrawCard : undefined}
+                className={`relative w-[220px] h-[330px] sm:w-64 sm:h-96 mb-10 flex justify-center items-center cursor-pointer group ${isDrawingCard ? 'animate-pulse pointer-events-none opacity-80' : ''}`}
+              >
+                {/* Deck Visual (Background Cards) */}
+                <div className="absolute inset-0 rounded-xl glass border border-tertiary-fixed-dim/30 transform -rotate-6 translate-x-4 translate-y-4 opacity-50 transition-transform duration-500 group-hover:-rotate-12 group-hover:translate-x-6 group-hover:translate-y-6"></div>
+                <div className="absolute inset-0 rounded-xl glass border border-tertiary-fixed-dim/50 transform rotate-3 -translate-x-2 translate-y-2 opacity-70 transition-transform duration-500 group-hover:rotate-6 group-hover:-translate-x-4 group-hover:translate-y-4"></div>
+                
+                {/* Top Card (Active) */}
+                <div className="absolute inset-0 rounded-xl glass border-2 border-tertiary-fixed-dim/80 shadow-[0_0_30px_rgba(220,198,110,0.3)] flex flex-col items-center justify-center p-6 group-hover:-translate-y-4 transition-transform duration-500 overflow-hidden bg-surface-bright/40">
+                  {/* Card Back Design */}
+                  <div className="absolute inset-0 p-3 sm:p-4 border border-tertiary-fixed-dim/20 rounded-lg m-2 pointer-events-none">
+                    <div className="w-full h-full border border-dashed border-tertiary-fixed-dim/40 rounded-md"></div>
+                  </div>
+                  
+                  <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-tertiary-fixed-dim mb-4 ${isDrawingCard ? 'animate-spin' : ''}`} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.412 1.586a.75.75 0 0 1 1.176 0l2.5 7.696a.75.75 0 0 0 .713.518h8.087a.75.75 0 0 1 .44 1.354l-6.541 4.754a.75.75 0 0 0-.272.84l2.5 7.695a.75.75 0 0 1-1.155.839l-6.54-4.753a.75.75 0 0 0-.88 0l-6.54 4.753a.75.75 0 0 1-1.156-.84l2.5-7.695a.75.75 0 0 0-.272-.84L.25 11.154a.75.75 0 0 1 .44-1.354h8.087a.75.75 0 0 0 .713-.518l2.5-7.696Z"></path>
+                  </svg>
+                  
+                  <p className="font-label-sm text-[10px] sm:text-xs text-tertiary-fixed-dim tracking-[0.2em] uppercase text-center font-bold">
+                    {isDrawingCard ? 'Sintonizando...' : 'Sacar una carta'}
+                  </p>
+                  
+                  {!isDrawingCard && (
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tertiary-fixed-dim mt-8 animate-bounce opacity-70" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"></path>
+                    </svg>
+                  )}
+                </div>
+                
+                {/* Glowing aura behind deck */}
+                <div className="absolute inset-0 bg-primary-container/20 blur-[60px] -z-10 rounded-full"></div>
+              </div>
+            ) : (
+              /* Drawn Card Reveal */
+              <div className="relative w-full max-w-sm glass rounded-3xl p-6 sm:p-8 flex flex-col items-center shadow-[0_0_40px_rgba(216,180,254,0.2)] border border-tertiary-fixed-dim/50 mb-10 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-tertiary-fixed-dim to-primary opacity-50"></div>
+                
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary mb-3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"></path>
+                </svg>
+                
+                <h3 className="font-h2 text-2xl sm:text-3xl text-primary text-center mb-4 capitalize">{drawnCard.name}</h3>
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-tertiary-fixed-dim/50 to-transparent mb-4"></div>
+                
+                <p className="font-body-md text-sm sm:text-base text-on-surface-variant text-center leading-relaxed italic mb-8">
+                  "{drawnCard.meaning}"
+                </p>
+                
+                <button 
+                  onClick={() => setDrawnCard(null)}
+                  className="px-6 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm font-semibold hover:bg-primary/20 transition-colors w-full"
+                >
+                  Agradecer y Guardar
+                </button>
+              </div>
+            )}
+
+            {/* Instructions/Tags */}
+            <div className="flex gap-2 sm:gap-4">
+              <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 font-label-sm text-[10px] sm:text-xs text-on-tertiary-fixed-variant font-semibold">Respiración Profunda</div>
+              <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 font-label-sm text-[10px] sm:text-xs text-on-tertiary-fixed-variant font-semibold">Intención Clara</div>
             </div>
           </div>
-
-          {/* Tarjeta: Amanecer Lunar */}
-          <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
-            <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Amanecer Lunar</span>
-            <div className="flex items-center gap-2 text-primary">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="M8 6l4-4 4 4"/><path d="M2 22h20"/></svg>
-              <span className="text-sm sm:text-base font-semibold">{astroData.moonrise}</span>
-            </div>
-          </div>
-
-          {/* Tarjeta: Ocaso Lunar */}
-          <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
-            <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Ocaso Lunar</span>
-            <div className="flex items-center gap-2 text-secondary">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-8"/><path d="M8 18l4 4 4-4"/><path d="M2 2h20"/></svg>
-              <span className="text-sm sm:text-base font-semibold">{astroData.moonset}</span>
-            </div>
-          </div>
-        </section>
+        )}
       </main>
 
       {/* Auth Modal */}
