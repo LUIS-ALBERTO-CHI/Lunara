@@ -27,7 +27,7 @@ export async function GET(request) {
     }
 
     // 2. Obtener todas las suscripciones activas
-    const { rows } = await sql`SELECT subscription_data FROM subscriptions`;
+    const { rows } = await sql`SELECT endpoint, p256dh, auth FROM subscriptions`;
 
     if (rows.length === 0) {
       return NextResponse.json({ message: 'No hay suscriptores para notificar' });
@@ -43,10 +43,16 @@ export async function GET(request) {
 
     // 4. Disparar notificaciones masivas
     const notifications = rows.map(async (row) => {
-      const sub = typeof row.subscription_data === 'string' ? JSON.parse(row.subscription_data) : row.subscription_data;
-      return webpush.sendNotification(sub, payload).catch(async (err) => {
+      const pushSubscription = {
+        endpoint: row.endpoint,
+        keys: {
+          p256dh: row.p256dh,
+          auth: row.auth
+        }
+      };
+      return webpush.sendNotification(pushSubscription, payload).catch(async (err) => {
         if (err.statusCode === 410 || err.statusCode === 404) {
-          await sql`DELETE FROM subscriptions WHERE endpoint = ${sub.endpoint}`;
+          await sql`DELETE FROM subscriptions WHERE endpoint = ${row.endpoint}`;
         }
       });
     });
