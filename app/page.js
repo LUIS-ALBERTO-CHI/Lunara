@@ -566,26 +566,26 @@ export default function Home() {
                   <p className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-semibold uppercase tracking-widest">Luna en {astroData.sign}</p>
                   <p className="text-sm sm:text-lg text-on-surface font-semibold truncate capitalize">{astroData.phase}</p>
                 </div>
-                <div className="text-right flex flex-col items-end">
-                  <span className="text-[10px] sm:text-xs text-primary font-bold px-2 py-1 bg-primary-container/50 rounded-full border border-primary/10">{astroData.illumination} Luz</span>
+                <div className="text-right flex flex-col items-end flex-shrink-0">
+                  <span className="text-[10px] sm:text-xs text-primary font-bold px-2 py-1 bg-primary-container/50 rounded-full border border-primary/10 whitespace-nowrap">{astroData.illumination} Luz</span>
                 </div>
               </div>
 
               {/* Tarjeta: Amanecer Lunar */}
               <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
                 <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Amanecer Lunar</span>
-                <div className="flex items-center gap-2 text-primary">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="M8 6l4-4 4 4"/><path d="M2 22h20"/></svg>
-                  <span className="text-sm sm:text-base font-semibold">{astroData.moonrise}</span>
+                <div className="flex items-center gap-2 text-primary min-w-0 w-full">
+                  <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="M8 6l4-4 4 4"/><path d="M2 22h20"/></svg>
+                  <span className="text-sm sm:text-base font-semibold truncate">{astroData.moonrise}</span>
                 </div>
               </div>
 
               {/* Tarjeta: Ocaso Lunar */}
               <div className="glass p-3 sm:p-4 rounded-lg flex flex-col gap-1.5 items-start justify-center border border-white/30">
                 <span className="text-[10px] sm:text-xs text-on-surface-variant opacity-70 font-bold uppercase tracking-wider">Ocaso Lunar</span>
-                <div className="flex items-center gap-2 text-secondary">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-8"/><path d="M8 18l4 4 4-4"/><path d="M2 2h20"/></svg>
-                  <span className="text-sm sm:text-base font-semibold">{astroData.moonset}</span>
+                <div className="flex items-center gap-2 text-secondary min-w-0 w-full">
+                  <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-8"/><path d="M8 18l4 4 4-4"/><path d="M2 2h20"/></svg>
+                  <span className="text-sm sm:text-base font-semibold truncate">{astroData.moonset}</span>
                 </div>
               </div>
             </section>
