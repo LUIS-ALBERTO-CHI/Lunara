@@ -24,7 +24,6 @@ export default function Home() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [energyData, setEnergyData] = useState({
     title: 'Cargando tu energía...',
     message: 'Sintonizando con el universo...'
@@ -431,62 +430,6 @@ export default function Home() {
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-0">
           <span className="font-semibold text-base sm:text-lg italic text-primary dark:text-primary-fixed">Vighnaharta</span>
         </div>
-
-        {/* Lado Derecho: Configuraciones (Settings) */}
-        <div className="flex items-center z-10">
-          <button 
-            onClick={() => setShowSettings(!showSettings)} 
-            className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 ${showSettings ? 'bg-primary/20 text-primary' : 'text-primary/80 hover:text-primary hover:bg-primary/10'}`} 
-            title="Ajustes"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
-            </svg>
-          </button>
-        </div>
-
-        {/* Panel de Ajustes (Dropdown) */}
-        {showSettings && (
-          <div className="absolute top-[60px] sm:top-16 right-3 sm:right-gutter w-64 bg-surface/95 dark:bg-surface-dim/95 backdrop-blur-xl border border-white/40 dark:border-outline/10 shadow-[0_15px_40px_rgba(114,84,119,0.2)] rounded-2xl p-5 flex flex-col gap-4 z-50">
-            <div className="flex items-center justify-between border-b border-outline-variant/40 pb-3 mb-1">
-              <h3 className="text-lg font-h3 font-semibold text-primary">Ajustes</h3>
-              <button onClick={() => setShowSettings(false)} className="text-on-surface-variant opacity-60 hover:opacity-100 transition-opacity">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-            
-            {/* Toggle de Notificaciones */}
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-on-surface">Notificaciones</span>
-                <span className="text-[10px] text-on-surface-variant opacity-70">Rituales y energía</span>
-              </div>
-              <button 
-                onClick={handleToggleNotifications}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isSubscribed ? 'bg-primary' : 'bg-surface-variant/70'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isSubscribed ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
-            </div>
-
-            {user && (
-              <div className="flex flex-col gap-2 mt-2">
-                {/* Botón de Cerrar Sesión */}
-                <button 
-                  onClick={() => {
-                    handleLogout();
-                    setShowSettings(false);
-                  }} 
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-error/10 text-error hover:bg-error/20 rounded-xl text-sm font-semibold transition-colors"
-                >
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                  Cerrar Sesión
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </header>
       
       <main className="relative px-3 sm:px-gutter pb-24 sm:pb-32 pt-4 sm:pt-8 max-w-lg mx-auto min-h-[calc(100vh-56px)] sm:min-h-[calc(100vh-64px)] overflow-hidden">
@@ -673,6 +616,67 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {activeTab === 'ajustes' && (
+          <div className="flex flex-col pt-4 sm:pt-8 w-full transition-all duration-300 gap-6 sm:gap-8 pb-10 animate-fade-in">
+            <section className="flex flex-col gap-2">
+              <h2 className="font-h2 text-2xl sm:text-3xl text-primary mb-1">Configuración</h2>
+              <p className="font-body-md text-sm sm:text-base text-on-surface-variant">Personaliza tu santuario y mantén tu energía alineada.</p>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              {/* Perfil */}
+              <div className="glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 flex flex-col gap-4">
+                <h3 className="font-h3 text-xl text-primary border-b border-white/20 pb-2">Tu Perfil</h3>
+                {user ? (
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setShowPhotoModal(true)} className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container relative group flex-shrink-0">
+                      <img src={profilePhoto || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHDOSBWkvpx78HLD_S93nD8kYo8mBLnZ2viPi8EYEwLnH9h7cAMtB_kfYXvax2MksGpvJ4HgdHUh40DHMddcA8TojeoQUod2rDuL_ZNFp0UGpMNDtQJU9TMyKkQSsjqEJcFx3I1KQQo-bGvN-NHnZbbr-_1anACp9B4AvjfpqegrHE7GTSXxzUQvJ9fmSxOCVyeYB1j-lY_1n0CNkO-HzbLnlevIWWCsaEt1Zi2lv6kRoADRwXo_L5dBRxx0LB-zEW8Isv4gOW2wY'} alt="Profile" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                      </div>
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-on-surface truncate">{user.email}</p>
+                      <button onClick={() => setShowPhotoModal(true)} className="text-xs text-primary underline mt-1 font-semibold">Cambiar foto de perfil</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-start gap-3">
+                    <p className="text-sm text-on-surface-variant">Inicia sesión para sincronizar tu diario y personalizar tu experiencia cósmica.</p>
+                    <button onClick={() => setShowAuthModal(true)} className="px-5 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-semibold hover:bg-primary/20 transition-colors">
+                      Iniciar Sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Preferencias */}
+              <div className="glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 flex flex-col gap-4">
+                <h3 className="font-h3 text-xl text-primary border-b border-white/20 pb-2">Preferencias</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col pr-4">
+                    <span className="text-base font-semibold text-on-surface">Notificaciones Cósmicas</span>
+                    <span className="text-xs text-on-surface-variant opacity-80 mt-1">Recibe tus afirmaciones y rituales diarios.</span>
+                  </div>
+                  <button onClick={handleToggleNotifications} className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${isSubscribed ? 'bg-primary' : 'bg-surface-variant/70'}`}>
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${isSubscribed ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Cuenta (Cerrar sesión) */}
+              {user && (
+                <div className="mt-4">
+                  <button onClick={() => { handleLogout(); setActiveTab('universo'); }} className="flex items-center justify-center gap-2 w-full py-3.5 bg-error/10 text-error hover:bg-error/20 rounded-xl text-sm font-semibold transition-colors border border-error/20">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
       </main>
 
       {/* Auth Modal */}
@@ -779,7 +783,8 @@ export default function Home() {
           { id: 'universo', label: 'Universo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
           { id: 'diario', label: 'Diario', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
           { id: 'oraculo', label: 'Oráculo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg> },
-          { id: 'guia', label: 'Guía', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> }
+          { id: 'guia', label: 'Guía', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> },
+          { id: 'ajustes', label: 'Ajustes', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path></svg> }
         ].map((item) => (
           <button
             key={item.id}
