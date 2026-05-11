@@ -780,11 +780,56 @@ export default function Home() {
       {/* BottomNavBar */}
       <nav className="fixed bottom-4 sm:bottom-6 left-0 right-0 flex justify-between items-center h-16 sm:h-20 z-50 px-3 sm:px-5 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[94%] sm:w-[90%] transition-all">
         {[
-          { id: 'universo', label: 'Universo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
-          { id: 'diario', label: 'Diario', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
-          { id: 'oraculo', label: 'Oráculo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg> },
-          { id: 'guia', label: 'Guía', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> },
-          { id: 'ajustes', label: 'Ajustes', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path></svg> }
+          { 
+            id: 'universo', 
+            label: 'Universo', 
+            icon: (isActive) => (
+              <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill={isActive ? "currentColor" : "none"} stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+            )
+          },
+          { 
+            id: 'diario', 
+            label: 'Diario', 
+            icon: (isActive) => (
+              <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" fill={isActive ? "currentColor" : "none"}/>
+              </svg>
+            )
+          },
+          { 
+            id: 'oraculo', 
+            label: 'Oráculo', 
+            icon: (isActive) => (
+              <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill={isActive ? "currentColor" : "none"} fillOpacity={isActive ? "0.2" : "1"}/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+            )
+          },
+          { 
+            id: 'guia', 
+            label: 'Guía', 
+            icon: (isActive) => (
+              <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill={isActive ? "currentColor" : "none"} fillOpacity={isActive ? "0.2" : "1"}/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+            )
+          },
+          { 
+            id: 'ajustes', 
+            label: 'Ajustes', 
+            icon: (isActive) => (
+              <svg width="20" height="20" className={`sm:w-6 sm:h-6 transition-transform duration-500 ${isActive ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" fill={isActive ? "currentColor" : "none"}/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+              </svg>
+            )
+          }
         ].map((item) => (
           <button
             key={item.id}
@@ -798,7 +843,7 @@ export default function Home() {
             {/* Fondo separado para evitar bugs visuales (glitches de renderizado en Safari/PWA) */}
             <div className={`absolute inset-0 bg-gradient-to-br from-primary-container to-tertiary-container rounded-full shadow-sm -z-10 transition-opacity duration-300 ease-out ${activeTab === item.id ? 'opacity-100' : 'opacity-0'}`} />
             
-            <div className="flex-shrink-0 relative z-10">{item.icon}</div>
+            <div className="flex-shrink-0 relative z-10">{item.icon(activeTab === item.id)}</div>
             <span className={`relative z-10 text-xs sm:text-sm font-semibold tracking-wide overflow-hidden whitespace-nowrap transition-all duration-300 ease-out transform-gpu ${
               activeTab === item.id ? 'max-w-[100px] opacity-100 ml-1.5 sm:ml-2' : 'max-w-0 opacity-0 ml-0'
             }`}>
