@@ -47,6 +47,15 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('universo');
   const [isDrawingCard, setIsDrawingCard] = useState(false);
   const [drawnCard, setDrawnCard] = useState(null);
+  const [selectedEnergy, setSelectedEnergy] = useState(null);
+  const [journalEntry, setJournalEntry] = useState('');
+  const [dailyPrompt, setDailyPrompt] = useState({
+    question: 'Sintonizando el universo...',
+    description: 'Buscando tu mensaje de hoy.'
+  });
+  const [hasCompletedJournal, setHasCompletedJournal] = useState(false);
+  const [showAchievement, setShowAchievement] = useState(false);
+  const [journalStreak, setJournalStreak] = useState(0);
   const audioRef = useRef(null);
   
   useEffect(() => {
@@ -140,6 +149,30 @@ export default function Home() {
     };
     fetchEnergy();
 
+    // Obtener el Prompt del Día
+    const fetchPrompt = async () => {
+      try {
+        const stored = localStorage.getItem('dailyPromptData');
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.date === today) {
+            setDailyPrompt(parsed.prompt);
+            return; // Usar el guardado si es del mismo día
+          }
+        }
+        
+        const res = await fetch('/api/daily-prompt');
+        const data = await res.json();
+        setDailyPrompt(data);
+        localStorage.setItem('dailyPromptData', JSON.stringify({ date: today, prompt: data }));
+      } catch (error) {
+        console.error('Error al obtener el prompt:', error);
+      }
+    };
+    fetchPrompt();
+
     // Configurar intervalo para verificar cada hora si es hora de actualizar
     const interval = setInterval(() => {
       const now = new Date();
@@ -204,6 +237,27 @@ export default function Home() {
       }
     };
     fetchAstroData();
+
+    // Comprobar si ya completó el diario hoy y calcular racha
+    const lastJournal = localStorage.getItem('lastJournalDate');
+    const storedStreak = parseInt(localStorage.getItem('journalStreak') || '0', 10);
+    
+    const todayDate = new Date();
+    const todayStr = todayDate.toISOString().split('T')[0];
+    
+    const yesterdayDate = new Date(todayDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+    if (lastJournal === todayStr) {
+      setHasCompletedJournal(true);
+      setJournalStreak(storedStreak);
+    } else if (lastJournal === yesterdayStr) {
+      setJournalStreak(storedStreak);
+    } else {
+      // Si no escribió ni hoy ni ayer, pierde la racha
+      setJournalStreak(0);
+    }
 
     return () => clearInterval(interval);
   }, []);
@@ -396,6 +450,36 @@ export default function Home() {
     }
   };
 
+  const handleSaveJournal = () => {
+    if (!journalEntry.trim()) return;
+    
+    const todayDate = new Date();
+    const todayStr = todayDate.toISOString().split('T')[0];
+    
+    const yesterdayDate = new Date(todayDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+    const lastJournal = localStorage.getItem('lastJournalDate');
+    let currentStreak = parseInt(localStorage.getItem('journalStreak') || '0', 10);
+
+    // Incrementar o reiniciar racha si es el primer registro del día
+    if (lastJournal !== todayStr) {
+      currentStreak = (lastJournal === yesterdayStr) ? currentStreak + 1 : 1;
+      localStorage.setItem('journalStreak', currentStreak.toString());
+      setJournalStreak(currentStreak);
+    }
+    
+    localStorage.setItem('lastJournalDate', todayStr);
+    setHasCompletedJournal(true);
+    
+    setShowAchievement(true);
+    setTimeout(() => setShowAchievement(false), 3500);
+
+    setJournalEntry('');
+    setSelectedEnergy(null);
+  };
+
   return (
     <>
       {/* TopAppBar */}
@@ -437,6 +521,16 @@ export default function Home() {
         <div className="absolute top-10 sm:top-20 -left-20 sm:-left-10 w-32 sm:w-40 h-32 sm:h-40 bg-primary-fixed/30 blur-3xl rounded-full -z-10"></div>
         <div className="absolute bottom-32 sm:bottom-40 -right-20 sm:-right-10 w-40 sm:w-60 h-40 sm:h-60 bg-secondary-fixed/30 blur-3xl rounded-full -z-10"></div>
         
+        {/* Achievement Toast */}
+        {showAchievement && (
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] transition-all animate-bounce">
+            <div className="bg-gradient-to-r from-primary to-secondary text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full shadow-[0_10px_40px_rgba(114,84,119,0.5)] flex items-center gap-2 sm:gap-3 border border-white/20">
+              <span className="text-lg sm:text-xl">✨</span>
+              <span className="font-label-sm tracking-widest text-[10px] sm:text-xs font-bold whitespace-nowrap">¡REFLEXIÓN CÓSMICA GUARDADA!</span>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'universo' && (
           <div className="w-full transition-all duration-300">
             {/* Affirmation Card */}
@@ -535,6 +629,113 @@ export default function Home() {
           </div>
         )}
         
+        {activeTab === 'diario' && (
+          <div className="flex flex-col w-full transition-all duration-300 animate-fade-in pb-10">
+            {/* Header Section */}
+            <div className="text-center mb-6 sm:mb-8 max-w-2xl mx-auto">
+              <h2 className="font-h2 text-2xl sm:text-3xl text-primary mb-2">Tu Espacio Seguro</h2>
+              <p className="font-body-md text-sm sm:text-base text-on-surface-variant">Plasma tus pensamientos y sintoniza con tu energía actual.</p>
+            </div>
+
+            {/* Energy Tracker Section */}
+            <section className="mb-6 sm:mb-8">
+              <h3 className="font-h3 text-lg text-primary mb-4 text-center">¿Cómo vibra tu energía ahora?</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Calma */}
+                <button 
+                  onClick={() => setSelectedEnergy('calma')}
+                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'calma' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
+                >
+                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" className={selectedEnergy === 'calma' ? 'text-primary' : 'text-secondary'} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
+                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'calma' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>CALMA</span>
+                </button>
+                {/* Gratitud */}
+                <button 
+                  onClick={() => setSelectedEnergy('gratitud')}
+                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'gratitud' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
+                >
+                  <svg width="28" height="28" fill={selectedEnergy === 'gratitud' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className="text-primary" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'gratitud' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>GRATITUD</span>
+                </button>
+                {/* Reflexión */}
+                <button 
+                  onClick={() => setSelectedEnergy('reflexion')}
+                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'reflexion' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
+                >
+                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" className={selectedEnergy === 'reflexion' ? 'text-primary' : 'text-tertiary'} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.516 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
+                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'reflexion' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>REFLEXIÓN</span>
+                </button>
+              </div>
+            </section>
+
+            {/* Prompt del Día Card */}
+            <section className="mb-6 sm:mb-8">
+              <div className="relative overflow-hidden p-6 sm:p-8 rounded-2xl glass border border-white/40 border-l-4 border-l-tertiary-container shadow-[0_10px_40px_rgba(114,84,119,0.1)]">
+                <div className="absolute -top-4 -right-4 p-4 opacity-10 text-primary-fixed">
+                  <svg width="100" height="100" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+                </div>
+                <p className="font-label-sm text-[10px] sm:text-xs text-tertiary tracking-widest mb-2 font-bold uppercase">Prompt del Día</p>
+                <h3 className="font-h2 text-xl sm:text-2xl text-on-surface max-w-lg mb-2 transition-opacity">"{dailyPrompt.question}"</h3>
+                <p className="font-body-md text-sm text-on-surface-variant italic opacity-80 transition-opacity">{dailyPrompt.description}</p>
+              </div>
+            </section>
+
+            {/* Main Writing Space */}
+            <section className="mb-6 sm:mb-8">
+              <div className="glass shadow-[0_10px_40px_rgba(114,84,119,0.1)] border border-white/40 rounded-2xl p-5 sm:p-8 min-h-[350px] flex flex-col">
+                <div className="flex items-center justify-between mb-4 border-b border-outline-variant/30 pb-4">
+                  <div className="flex flex-col">
+                    <span className="font-h3 text-xl sm:text-2xl text-primary">Diario Introspectivo</span>
+                    <span className="font-label-sm text-[10px] sm:text-xs text-on-surface-variant opacity-70 mt-1 tracking-widest uppercase">
+                      {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} • Fase Lunar: {astroData.phase}
+                    </span>
+                  </div>
+                </div>
+                <textarea 
+                  value={journalEntry}
+                  onChange={(e) => setJournalEntry(e.target.value)}
+                  className="flex-1 bg-transparent border-none outline-none focus:ring-0 font-body-md text-base text-on-surface leading-relaxed resize-none w-full placeholder:text-outline/50 placeholder:italic p-0" 
+                  placeholder="Escribe desde el alma..."
+                ></textarea>
+                <div className="mt-6 flex justify-end">
+                  <button 
+                    onClick={handleSaveJournal}
+                    className="bg-primary text-white px-6 py-2.5 rounded-full font-label-sm text-xs tracking-widest hover:opacity-90 shadow-lg shadow-primary/30 transition-all active:scale-95 font-semibold"
+                  >
+                    GUARDAR REFLEXIÓN
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Historial de Energía Chart */}
+            <section className="mb-6">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h2 className="font-h3 text-xl text-primary">Tu Flujo Energético</h2>
+                <span className="font-label-sm text-[10px] text-tertiary tracking-widest font-bold">ÚLTIMOS 7 DÍAS</span>
+              </div>
+              <div className="glass shadow-[0_10px_40px_rgba(114,84,119,0.1)] border border-white/40 rounded-2xl p-5 sm:p-6 h-56 flex items-end justify-between gap-2 sm:gap-4">
+                {[
+                  { day: 'LUN', height: 'h-16', color: 'bg-primary/40' },
+                  { day: 'MAR', height: 'h-24', color: 'bg-secondary/40' },
+                  { day: 'MIE', height: 'h-32', color: 'bg-tertiary/40' },
+                  { day: 'JUE', height: 'h-20', color: 'bg-primary/40' },
+                  { day: 'VIE', height: 'h-28', color: 'bg-tertiary/40' },
+                  { day: 'SAB', height: 'h-16', color: 'bg-secondary/40' },
+                  { day: 'HOY', height: 'h-36', color: 'bg-gradient-to-t from-primary to-secondary opacity-80', isToday: true }
+                ].map((stat, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="w-full sm:w-8 bg-primary-container/20 rounded-t-full h-32 relative overflow-hidden">
+                      <div className={`absolute bottom-0 w-full ${stat.height} ${stat.color} rounded-t-full`}></div>
+                    </div>
+                    <span className={`font-label-sm text-[9px] sm:text-[10px] tracking-widest ${stat.isToday ? 'text-primary font-bold' : 'opacity-60 text-on-surface-variant'}`}>{stat.day}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
         {activeTab === 'oraculo' && (
           <div className="flex flex-col items-center justify-center pt-4 sm:pt-8 w-full transition-all duration-300">
             <div className="text-center mb-8 sm:mb-12 max-w-2xl">
@@ -649,6 +850,24 @@ export default function Home() {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Estadísticas / Logros */}
+              <div className="glass rounded-2xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 flex flex-col items-center justify-center text-center gap-4 group">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-primary-container flex items-center justify-center relative bg-white/20">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary fill-primary/20 group-hover:scale-110 transition-transform duration-300">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                  </svg>
+                  <div className="absolute -bottom-3 sm:-bottom-4 bg-surface px-3 py-1 rounded-full text-[10px] sm:text-xs text-primary font-bold border border-primary-container whitespace-nowrap shadow-sm">
+                    {journalStreak} {journalStreak === 1 ? 'Día' : 'Días'}
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <h4 className="font-h3 text-xl sm:text-2xl text-on-surface mb-1">Racha de Luz</h4>
+                  <p className="text-xs sm:text-sm text-on-surface-variant max-w-[260px] mx-auto leading-relaxed">
+                    Has mantenido tu conexión espiritual activa. ¡Sigue brillando!
+                  </p>
+                </div>
               </div>
 
               {/* Preferencias */}
@@ -843,7 +1062,15 @@ export default function Home() {
             {/* Fondo separado para evitar bugs visuales (glitches de renderizado en Safari/PWA) */}
             <div className={`absolute inset-0 bg-gradient-to-br from-primary-container to-tertiary-container rounded-full shadow-sm -z-10 transition-opacity duration-300 ease-out ${activeTab === item.id ? 'opacity-100' : 'opacity-0'}`} />
             
-            <div className="flex-shrink-0 relative z-10">{item.icon(activeTab === item.id)}</div>
+            <div className="flex-shrink-0 relative z-10">
+              {item.icon(activeTab === item.id)}
+              {item.id === 'diario' && hasCompletedJournal && (
+                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-full w-full bg-primary border-transparent border"></span>
+                </span>
+              )}
+            </div>
             <span className={`relative z-10 text-xs sm:text-sm font-semibold tracking-wide overflow-hidden whitespace-nowrap transition-all duration-300 ease-out transform-gpu ${
               activeTab === item.id ? 'max-w-[100px] opacity-100 ml-1.5 sm:ml-2' : 'max-w-0 opacity-0 ml-0'
             }`}>
