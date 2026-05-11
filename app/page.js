@@ -616,7 +616,7 @@ export default function Home() {
                     <div className="w-full h-full border border-dashed border-tertiary-fixed-dim/40 rounded-md"></div>
                   </div>
                   
-                  <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-tertiary-fixed-dim mb-4 ${isDrawingCard ? 'animate-spin' : ''}`} viewBox="0 0 24 24">
+                  <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" className={`flex-shrink-0 overflow-visible text-tertiary-fixed-dim mb-4 ${isDrawingCard ? 'animate-spin' : ''}`} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.412 1.586a.75.75 0 0 1 1.176 0l2.5 7.696a.75.75 0 0 0 .713.518h8.087a.75.75 0 0 1 .44 1.354l-6.541 4.754a.75.75 0 0 0-.272.84l2.5 7.695a.75.75 0 0 1-1.155.839l-6.54-4.753a.75.75 0 0 0-.88 0l-6.54 4.753a.75.75 0 0 1-1.156-.84l2.5-7.695a.75.75 0 0 0-.272-.84L.25 11.154a.75.75 0 0 1 .44-1.354h8.087a.75.75 0 0 0 .713-.518l2.5-7.696Z"></path>
                   </svg>
                   
@@ -625,7 +625,7 @@ export default function Home() {
                   </p>
                   
                   {!isDrawingCard && (
-                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tertiary-fixed-dim mt-8 animate-bounce opacity-70" viewBox="0 0 24 24">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 overflow-visible text-tertiary-fixed-dim mt-8 animate-bounce opacity-70" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"></path>
                     </svg>
                   )}
@@ -639,7 +639,7 @@ export default function Home() {
               <div className="relative w-full max-w-sm glass rounded-3xl p-6 sm:p-8 flex flex-col items-center shadow-[0_0_40px_rgba(216,180,254,0.2)] border border-tertiary-fixed-dim/50 mb-10 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-tertiary-fixed-dim to-primary opacity-50"></div>
                 
-                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary mb-3" viewBox="0 0 24 24">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" className="flex-shrink-0 overflow-visible text-primary mb-3" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"></path>
                 </svg>
                 
@@ -770,7 +770,6 @@ export default function Home() {
       <nav className="fixed bottom-4 sm:bottom-6 left-0 right-0 flex justify-between items-center h-16 sm:h-20 z-50 px-3 sm:px-5 mx-auto max-w-md bg-white/40 dark:bg-surface-container-highest/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_10px_40px_rgba(114,84,119,0.25)] rounded-full w-[94%] sm:w-[90%] transition-all">
         {[
           { id: 'universo', label: 'Universo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
-          { id: 'manifestar', label: 'Manifestar', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2.5 21.5l14-14M22 2l-2 2M22 6l-2-2M18 2l2 2M2 6l2-2M2 2l2 2M6 2l-2 2"/></svg> },
           { id: 'diario', label: 'Diario', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
           { id: 'oraculo', label: 'Oráculo', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg> },
           { id: 'guia', label: 'Guía', icon: <svg width="20" height="20" className="sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> }
