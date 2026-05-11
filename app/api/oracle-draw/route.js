@@ -29,10 +29,13 @@ export async function GET() {
       }
     }
 
-    // 3. Devolver los datos al frontend
-    return NextResponse.json({ name: nameEs, meaning: meaningEs, type: card.type });
+    // 3. Construir URL de la imagen basada en el "name_short" (Cartas Rider-Waite)
+    const imageUrl = `https://sacred-texts.com/tarot/pkt/img/${card.name_short}.jpg`;
+
+    // 4. Devolver los datos al frontend
+    return NextResponse.json({ name: nameEs, meaning: meaningEs, type: card.type, image: imageUrl });
   } catch (error) {
     console.error('Error obteniendo la carta del oráculo:', error);
-    return NextResponse.json({ name: 'El Loco', meaning: 'Nuevos comienzos, espontaneidad, fe en el universo. Es el momento de dar un salto hacia lo desconocido con el corazón abierto.', type: 'major' });
+    return NextResponse.json({ name: 'El Loco', meaning: 'Nuevos comienzos, espontaneidad, fe en el universo. Es el momento de dar un salto hacia lo desconocido con el corazón abierto.', type: 'major', image: 'https://sacred-texts.com/tarot/pkt/img/ar00.jpg' });
   }
 }
