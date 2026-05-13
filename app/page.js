@@ -606,6 +606,22 @@ export default function Home() {
     }
   };
 
+  const handleDeleteManifestation = async (id) => {
+    if (!window.confirm('¿Deseas soltar esta manifestación hacia el universo (eliminar)?')) return;
+
+    // Actualización optimista de la UI (desaparece inmediatamente)
+    setPastManifestations(prev => prev.filter(m => m.id !== id));
+
+    try {
+      const res = await fetch(`/api/manifestations?id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Error al eliminar en la base de datos');
+    } catch (error) {
+      console.error('Error eliminando:', error);
+    }
+  };
+
   const featuredEntry = pastManifestations[0];
   const olderEntries = pastManifestations.slice(1);
 
@@ -779,6 +795,17 @@ export default function Home() {
               {/* Featured Entry (Large) */}
               {featuredEntry ? (
                 <article className={`sm:col-span-8 glass rounded-2xl shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col min-h-[300px] ${featuredEntry.image_url ? 'p-0' : 'p-6 justify-between'}`}>
+                  {/* Botón Eliminar Entrada Principal */}
+                  <div className="absolute top-4 right-4 z-20">
+                    <button 
+                      onClick={() => handleDeleteManifestation(featuredEntry.id)} 
+                      className={`p-2 rounded-full backdrop-blur-md transition-colors ${featuredEntry.image_url ? 'bg-black/20 text-white/70 hover:bg-error/80 hover:text-white' : 'bg-surface/50 text-on-surface-variant/50 hover:bg-error/10 hover:text-error'}`}
+                      title="Eliminar manifestación"
+                    >
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  </div>
+
                   {featuredEntry.image_url && (
                     <div className="absolute inset-0 z-0 pointer-events-none">
                       <img src={featuredEntry.image_url} alt="Visión" className="w-full h-full object-cover opacity-80" />
@@ -865,10 +892,19 @@ export default function Home() {
                         <h4 className="font-h3 text-base text-on-surface truncate">{entry.intention}</h4>
                         <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">{entry.vision || 'Una semilla al universo...'}</p>
                       </div>
-                      <div className="flex flex-col items-end flex-shrink-0">
-                        <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">{formatManifestationDate(entry.created_at)}</span>
+                      <div className="flex flex-col items-end flex-shrink-0 justify-between h-full min-h-[40px]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">{formatManifestationDate(entry.created_at)}</span>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteManifestation(entry.id); }} 
+                            className="text-on-surface-variant/40 hover:text-error transition-colors p-1"
+                            title="Eliminar manifestación"
+                          >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
+                        </div>
                         {entry.energy && (
-                          <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">{entry.energy}</span>
+                          <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] tracking-widest uppercase">{entry.energy}</span>
                         )}
                       </div>
                     </article>

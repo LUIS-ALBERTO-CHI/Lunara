@@ -42,3 +42,20 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'El ID es requerido' }, { status: 400 });
+    }
+
+    await sql`DELETE FROM manifestations WHERE id = ${id}`;
+    return NextResponse.json({ success: true, message: 'Manifestación soltada al universo (eliminada)' });
+  } catch (error) {
+    console.error('Error eliminando manifestación:', error);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+  }
+}
