@@ -778,24 +778,32 @@ export default function Home() {
             <section className="grid grid-cols-1 sm:grid-cols-12 gap-4">
               {/* Featured Entry (Large) */}
               {featuredEntry ? (
-                <article className="sm:col-span-8 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+                <article className={`sm:col-span-8 glass rounded-2xl shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col min-h-[300px] ${featuredEntry.image_url ? 'p-0' : 'p-6 justify-between'}`}>
                   {featuredEntry.image_url && (
-                    <div className="absolute inset-0 z-0">
-                      <img src={featuredEntry.image_url} alt="Visión" className="w-full h-full object-cover opacity-25 mix-blend-luminosity" />
+                    <div className="absolute inset-0 z-0 pointer-events-none">
+                      <img src={featuredEntry.image_url} alt="Visión" className="w-full h-full object-cover opacity-80" />
                     </div>
                   )}
-                  <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed">
-                    <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                  </div>
-                  <div className="relative z-10 flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      {featuredEntry.energy && <span className="px-3 py-1 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/30 text-tertiary font-label-sm text-[10px] tracking-widest font-bold uppercase">{featuredEntry.energy}</span>}
-                      <span className="text-on-surface-variant/60 text-xs font-semibold">{formatManifestationDate(featuredEntry.created_at)}</span>
+                  
+                  {!featuredEntry.image_url && (
+                    <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed z-0">
+                      <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </div>
-                    <h3 className="font-h3 text-xl sm:text-2xl text-on-surface">{featuredEntry.intention}</h3>
-                    <p className="font-body-md text-sm sm:text-base text-on-surface-variant line-clamp-4 leading-relaxed whitespace-pre-wrap">
-                      {featuredEntry.vision || 'Has sembrado esta intención en el universo...'}
-                    </p>
+                  )}
+
+                  <div className={`relative z-10 flex flex-col h-full ${featuredEntry.image_url ? 'justify-end' : 'gap-3'}`}>
+                    {featuredEntry.image_url && <div className="flex-1 min-h-[140px]"></div>}
+                    
+                    <div className={`flex flex-col gap-3 ${featuredEntry.image_url ? 'bg-surface/95 backdrop-blur-md p-6 border-t border-white/50 w-full' : ''}`}>
+                      <div className="flex items-center gap-2">
+                        {featuredEntry.energy && <span className="px-3 py-1 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/30 text-tertiary font-label-sm text-[10px] tracking-widest font-bold uppercase">{featuredEntry.energy}</span>}
+                        <span className="text-on-surface-variant/60 text-xs font-semibold">{formatManifestationDate(featuredEntry.created_at)}</span>
+                      </div>
+                      <h3 className="font-h3 text-xl sm:text-2xl text-on-surface">{featuredEntry.intention}</h3>
+                      <p className="font-body-md text-sm sm:text-base text-on-surface-variant line-clamp-4 leading-relaxed whitespace-pre-wrap">
+                        {featuredEntry.vision || 'Has sembrado esta intención en el universo...'}
+                      </p>
+                    </div>
                   </div>
                 </article>
               ) : (
@@ -1274,7 +1282,7 @@ export default function Home() {
           },
           { 
                 id: 'journal', 
-                label: 'Journal', 
+                label: 'Diario', 
             icon: (isActive) => (
               <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
