@@ -61,9 +61,15 @@ export default function Home() {
   const [manifestationForm, setManifestationForm] = useState({
     intention: '',
     vision: '',
-    energy: 'Gratitud'
+    energy: 'Gratitud',
+    imageUrl: ''
   });
   const audioRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const [pastManifestations, setPastManifestations] = useState([]);
+  const [isLoadingManifestations, setIsLoadingManifestations] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   useEffect(() => {
     // Restaurar sesión de usuario al recargar la página o abrir la app
@@ -268,6 +274,41 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Efecto para cargar las entradas anteriores del journal desde Neon
+  useEffect(() => {
+    const fetchManifestations = async () => {
+      if (activeTab === 'journal') {
+        setIsLoadingManifestations(true);
+        try {
+          const emailParam = user?.email ? `?email=${encodeURIComponent(user.email)}` : '';
+          const res = await fetch(`/api/manifestations${emailParam}`);
+          if (res.ok) {
+            const data = await res.json();
+            setPastManifestations(data.manifestations || []);
+          }
+        } catch (error) {
+          console.error("Error al obtener manifestaciones:", error);
+        } finally {
+          setIsLoadingManifestations(false);
+        }
+      }
+    };
+    fetchManifestations();
+  }, [activeTab, user]);
+
+  const formatManifestationDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) return 'Hoy';
+    if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
+    
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  };
 
   // Efecto para manejar el temporizador de la meditación y las fases de respiración
   useEffect(() => {
@@ -487,6 +528,37 @@ export default function Home() {
     setSelectedEnergy(null);
   };
 
+  // Manejador para subir la imagen a Cloudinary directamente
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      // Estas variables deben coincidir con tu .env.local
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'lunara_preset');
+      
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      if (!cloudName) throw new Error("Falta configurar NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      if (data.secure_url) {
+        setManifestationForm(prev => ({ ...prev, imageUrl: data.secure_url }));
+      }
+    } catch (error) {
+      console.error("Error al subir la imagen:", error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleManifestationSubmit = async () => {
     if (!manifestationForm.intention.trim()) return;
     
@@ -503,6 +575,17 @@ export default function Home() {
 
       if (!res.ok) throw new Error('Error al guardar en la base de datos');
 
+      // Añadir la manifestación al estado local instantáneamente para que aparezca sin recargar
+      const newManifestation = {
+        id: Date.now(), // ID temporal
+        intention: manifestationForm.intention,
+        vision: manifestationForm.vision,
+        energy: manifestationForm.energy,
+        image_url: manifestationForm.imageUrl,
+        created_at: new Date().toISOString()
+      };
+      setPastManifestations(prev => [newManifestation, ...prev]);
+
       // 2. Éxito: Cerrar vista y mostrar notificación
       setIsCreatingManifestation(false);
       setShowAchievement(true);
@@ -517,11 +600,14 @@ export default function Home() {
       localStorage.setItem('lastJournalDate', todayStr);
       setHasCompletedJournal(true);
       
-      setManifestationForm({ intention: '', vision: '', energy: 'Gratitud' });
+      setManifestationForm({ intention: '', vision: '', energy: 'Gratitud', imageUrl: '' });
     } catch (error) {
       console.error('Error manifestando:', error);
     }
   };
+
+  const featuredEntry = pastManifestations[0];
+  const olderEntries = pastManifestations.slice(1);
 
   return (
     <>
@@ -691,26 +777,39 @@ export default function Home() {
             {/* Bento Grid Layout for Journal Entries */}
             <section className="grid grid-cols-1 sm:grid-cols-12 gap-4">
               {/* Featured Entry (Large) */}
-              <article className="sm:col-span-8 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed">
-                  <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                </div>
-                <div className="relative z-10 flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/30 text-tertiary font-label-sm text-[10px] tracking-widest font-bold uppercase">Gratitud</span>
-                    <span className="text-on-surface-variant/60 text-xs font-semibold">Hoy, 09:00 AM</span>
+              {featuredEntry ? (
+                <article className="sm:col-span-8 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+                  {featuredEntry.image_url && (
+                    <div className="absolute inset-0 z-0">
+                      <img src={featuredEntry.image_url} alt="Visión" className="w-full h-full object-cover opacity-25 mix-blend-luminosity" />
+                    </div>
+                  )}
+                  <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed">
+                    <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                   </div>
-                  <h3 className="font-h3 text-xl sm:text-2xl text-on-surface">Abundancia en lo cotidiano</h3>
-                  <p className="font-body-md text-sm sm:text-base text-on-surface-variant line-clamp-4 leading-relaxed">
-                    Hoy decido enfocarme en las pequeñas cosas que me brindan paz. El aroma del café por la mañana, la luz dorada que entra por la ventana, y la sensación de calma después de meditar. Siento que el universo me sostiene...
-                  </p>
-                </div>
-                <div className="relative z-10 mt-6 flex justify-end">
-                  <button className="text-primary hover:text-secondary transition-colors flex items-center gap-1 font-label-sm text-xs font-bold uppercase tracking-widest">
-                    Leer más <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
-              </article>
+                  <div className="relative z-10 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      {featuredEntry.energy && <span className="px-3 py-1 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/30 text-tertiary font-label-sm text-[10px] tracking-widest font-bold uppercase">{featuredEntry.energy}</span>}
+                      <span className="text-on-surface-variant/60 text-xs font-semibold">{formatManifestationDate(featuredEntry.created_at)}</span>
+                    </div>
+                    <h3 className="font-h3 text-xl sm:text-2xl text-on-surface">{featuredEntry.intention}</h3>
+                    <p className="font-body-md text-sm sm:text-base text-on-surface-variant line-clamp-4 leading-relaxed whitespace-pre-wrap">
+                      {featuredEntry.vision || 'Has sembrado esta intención en el universo...'}
+                    </p>
+                  </div>
+                </article>
+              ) : (
+                <article className="sm:col-span-8 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col justify-between min-h-[300px] justify-center items-center text-center">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed">
+                    <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  </div>
+                  <div className="relative z-10 flex flex-col items-center gap-3">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary/30" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <h3 className="font-h3 text-xl text-on-surface-variant opacity-80">El diario está en blanco</h3>
+                    <p className="font-body-md text-sm text-on-surface-variant/60 max-w-xs">Plasma tu primera manifestación para verla florecer en este espacio cósmico.</p>
+                  </div>
+                </article>
+              )}
 
               {/* Stats/Streak (Small) */}
               <aside className="sm:col-span-4 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 flex flex-col items-center justify-center text-center gap-4 min-h-[300px]">
@@ -734,50 +833,43 @@ export default function Home() {
               <div className="sm:col-span-12 flex flex-col gap-3 mt-4">
                 <h3 className="font-h3 text-lg text-on-surface mb-2 border-b border-outline-variant/30 pb-2">Entradas Anteriores</h3>
                 
-                {/* List Item 1 */}
-                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
-                  <div className="w-12 h-12 rounded-full bg-secondary-container/50 border border-secondary-container flex items-center justify-center text-secondary flex-shrink-0">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                {isLoadingManifestations ? (
+                  <div className="flex justify-center p-6">
+                    <svg width="24" height="24" className="animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   </div>
-                  <div className="flex-grow min-w-0">
-                    <h4 className="font-h3 text-base text-on-surface truncate">Soltar para recibir</h4>
-                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Dejo ir la necesidad de control y confío en el proceso...</p>
+                ) : olderEntries.length > 0 ? (
+                  olderEntries.map((entry) => (
+                    <article key={entry.id} className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
+                      <div className="w-12 h-12 rounded-full bg-secondary-container/50 border border-secondary-container flex items-center justify-center text-secondary flex-shrink-0 overflow-hidden">
+                        {entry.image_url ? (
+                          <img src={entry.image_url} alt="Símbolo" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            {entry.energy === 'Gratitud' && <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
+                            {entry.energy === 'Paz' && <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1S7 6.5 7.5 6 8.5 5 10 5s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1M2 12c.6.5 1.2 1 2.5 1S7 12.5 7.5 12 8.5 11 10 11s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1M2 18c.6.5 1.2 1 2.5 1S7 18.5 7.5 18 8.5 17 10 17s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1"/></svg>}
+                            {entry.energy === 'Abundancia' && <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3L8 9l4 13"/><path d="M13 3l3 6-4 13"/><path d="M2 9h20"/></svg>}
+                            {entry.energy === 'Claridad' && <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>}
+                            {(!entry.energy || !['Gratitud', 'Paz', 'Abundancia', 'Claridad'].includes(entry.energy)) && <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13c0-3.87 3.13-7 7-7h5c0 3.87-3.13 7-7 7 1.66 0 3 1.34 3 3v4h-1z"/></svg>}
+                          </>
+                        )}
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <h4 className="font-h3 text-base text-on-surface truncate">{entry.intention}</h4>
+                        <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">{entry.vision || 'Una semilla al universo...'}</p>
+                      </div>
+                      <div className="flex flex-col items-end flex-shrink-0">
+                        <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">{formatManifestationDate(entry.created_at)}</span>
+                        {entry.energy && (
+                          <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">{entry.energy}</span>
+                        )}
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="glass rounded-xl p-4 flex justify-center text-center opacity-70">
+                    <p className="text-sm text-on-surface-variant italic">No hay más entradas que mostrar por ahora.</p>
                   </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">Ayer</span>
-                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Paz</span>
-                  </div>
-                </article>
-
-                {/* List Item 2 */}
-                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
-                  <div className="w-12 h-12 rounded-full bg-primary-container/50 border border-primary-container flex items-center justify-center text-primary flex-shrink-0">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 22c-4.97 0-9-4.03-9-9 0-4.97 4.03-9 9-9s9 4.03 9 9c0 4.97-4.03 9-9 9z"/><path d="M12 13V3"/><path d="M12 13c-2.76 0-5-2.24-5-5s2.24-5 5-5"/><path d="M12 13c2.76 0 5-2.24 5-5s-2.24-5-5-5"/></svg>
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <h4 className="font-h3 text-base text-on-surface truncate">Sembrando intenciones de luna nueva</h4>
-                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Visualizo mis metas cristalizándose con esta nueva energía lunar...</p>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">12 Oct</span>
-                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Enfoque</span>
-                  </div>
-                </article>
-
-                {/* List Item 3 */}
-                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
-                  <div className="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant flex-shrink-0">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13c0-3.87 3.13-7 7-7h5c0 3.87-3.13 7-7 7 1.66 0 3 1.34 3 3v4h-1z"/></svg>
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <h4 className="font-h3 text-base text-on-surface truncate">Sanando raíces</h4>
-                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Hoy dediqué tiempo a conectar con mis ancestros y agradecer su camino...</p>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">10 Oct</span>
-                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Sanación</span>
-                  </div>
-                </article>
+                )}
               </div>
             </section>
           </div>
@@ -1023,14 +1115,35 @@ export default function Home() {
               </div>
 
               {/* Símbolo Sagrado / Image Upload Area */}
-              <div className="group relative flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-outline-variant/40 rounded-2xl hover:border-primary/40 transition-all bg-white/20 cursor-pointer overflow-hidden">
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-white/80 shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              <div 
+                onClick={() => !isUploadingImage && fileInputRef.current?.click()}
+                className="group relative flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-outline-variant/40 rounded-2xl hover:border-primary/40 transition-all bg-white/20 cursor-pointer overflow-hidden"
+              >
+                <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+                
+                {isUploadingImage ? (
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <svg width="32" height="32" className="animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p className="font-label-sm text-xs sm:text-sm text-primary font-bold mt-1">Subiendo símbolo...</p>
                   </div>
-                  <p className="font-label-sm text-xs sm:text-sm text-primary font-bold mt-1">Añadir Símbolo Sagrado</p>
-                  <p className="text-[10px] sm:text-xs text-on-surface-variant/70 font-medium">Sube una imagen que inspire tu visión (opcional)</p>
-                </div>
+                ) : manifestationForm.imageUrl ? (
+                  <>
+                    <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity z-0">
+                      <img src={manifestationForm.imageUrl} alt="Símbolo Sagrado" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="relative z-10 flex flex-col items-center gap-2 bg-white/60 backdrop-blur-md p-3 rounded-xl border border-white/40 group-hover:scale-105 transition-transform">
+                      <p className="font-label-sm text-xs text-primary font-bold">Cambiar Imagen</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 rounded-full bg-white/80 shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    </div>
+                    <p className="font-label-sm text-xs sm:text-sm text-primary font-bold mt-1">Añadir Símbolo Sagrado</p>
+                    <p className="text-[10px] sm:text-xs text-on-surface-variant/70 font-medium">Sube una imagen que inspire tu visión (opcional)</p>
+                  </div>
+                )}
               </div>
             </div>
 
