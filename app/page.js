@@ -56,6 +56,13 @@ export default function Home() {
   const [hasCompletedJournal, setHasCompletedJournal] = useState(false);
   const [showAchievement, setShowAchievement] = useState(false);
   const [journalStreak, setJournalStreak] = useState(0);
+  
+  const [isCreatingManifestation, setIsCreatingManifestation] = useState(false);
+  const [manifestationForm, setManifestationForm] = useState({
+    intention: '',
+    vision: '',
+    energy: 'Gratitud'
+  });
   const audioRef = useRef(null);
   
   useEffect(() => {
@@ -480,6 +487,42 @@ export default function Home() {
     setSelectedEnergy(null);
   };
 
+  const handleManifestationSubmit = async () => {
+    if (!manifestationForm.intention.trim()) return;
+    
+    try {
+      // 1. Guardar en la base de datos Neon
+      const res = await fetch('/api/manifestations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...manifestationForm,
+          userEmail: user?.email || null // Asociamos la manifestación al usuario si ha iniciado sesión
+        })
+      });
+
+      if (!res.ok) throw new Error('Error al guardar en la base de datos');
+
+      // 2. Éxito: Cerrar vista y mostrar notificación
+      setIsCreatingManifestation(false);
+      setShowAchievement(true);
+      setTimeout(() => setShowAchievement(false), 3500);
+      
+      // 3. Registrar la acción para la "Racha de Luz" (Streak)
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (localStorage.getItem('lastJournalDate') !== todayStr) {
+        setJournalStreak(prev => prev + 1);
+        localStorage.setItem('journalStreak', (journalStreak + 1).toString());
+      }
+      localStorage.setItem('lastJournalDate', todayStr);
+      setHasCompletedJournal(true);
+      
+      setManifestationForm({ intention: '', vision: '', energy: 'Gratitud' });
+    } catch (error) {
+      console.error('Error manifestando:', error);
+    }
+  };
+
   return (
     <>
       {/* TopAppBar */}
@@ -629,108 +672,112 @@ export default function Home() {
           </div>
         )}
         
-        {activeTab === 'diario' && (
-          <div className="flex flex-col w-full transition-all duration-300 animate-fade-in pb-10">
+        {activeTab === 'journal' && (
+          <div className="flex flex-col w-full transition-all duration-300 animate-fade-in pb-10 gap-6 sm:gap-8">
             {/* Header Section */}
-            <div className="text-center mb-6 sm:mb-8 max-w-2xl mx-auto">
-              <h2 className="font-h2 text-2xl sm:text-3xl text-primary mb-2">Tu Espacio Seguro</h2>
-              <p className="font-body-md text-sm sm:text-base text-on-surface-variant">Plasma tus pensamientos y sintoniza con tu energía actual.</p>
-            </div>
-
-            {/* Energy Tracker Section */}
-            <section className="mb-6 sm:mb-8">
-              <h3 className="font-h3 text-lg text-primary mb-4 text-center">¿Cómo vibra tu energía ahora?</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {/* Calma */}
-                <button 
-                  onClick={() => setSelectedEnergy('calma')}
-                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'calma' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
-                >
-                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" className={selectedEnergy === 'calma' ? 'text-primary' : 'text-secondary'} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
-                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'calma' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>CALMA</span>
-                </button>
-                {/* Gratitud */}
-                <button 
-                  onClick={() => setSelectedEnergy('gratitud')}
-                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'gratitud' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
-                >
-                  <svg width="28" height="28" fill={selectedEnergy === 'gratitud' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className="text-primary" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
-                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'gratitud' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>GRATITUD</span>
-                </button>
-                {/* Reflexión */}
-                <button 
-                  onClick={() => setSelectedEnergy('reflexion')}
-                  className={`glass p-4 rounded-xl flex flex-col items-center gap-2 transition-all duration-300 ${selectedEnergy === 'reflexion' ? 'bg-primary-container/60 border-primary/40 scale-105 shadow-md' : 'hover:scale-105 border border-white/40 hover:bg-white/40'}`}
-                >
-                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" className={selectedEnergy === 'reflexion' ? 'text-primary' : 'text-tertiary'} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.516 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
-                  <span className={`font-label-sm text-[10px] sm:text-xs tracking-widest ${selectedEnergy === 'reflexion' ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>REFLEXIÓN</span>
-                </button>
+            <section className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6">
+              <div>
+                <h2 className="font-h2 text-2xl sm:text-3xl text-primary mb-2">Diario de Manifestación</h2>
+                <p className="font-body-md text-sm sm:text-base text-on-surface-variant max-w-2xl">
+                  Un espacio seguro para plasmar tus intenciones y observar cómo florecen. Escribe con el corazón abierto.
+                </p>
               </div>
+              <button onClick={() => setIsCreatingManifestation(true)} className="bg-gradient-to-r from-primary to-secondary text-white font-label-sm text-xs sm:text-sm font-bold px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(216,180,254,0.6)] hover:opacity-90 transition-opacity whitespace-nowrap active:scale-95 duration-200">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Nueva Manifestación
+              </button>
             </section>
 
-            {/* Prompt del Día Card */}
-            <section className="mb-6 sm:mb-8">
-              <div className="relative overflow-hidden p-6 sm:p-8 rounded-2xl glass border border-white/40 border-l-4 border-l-tertiary-container shadow-[0_10px_40px_rgba(114,84,119,0.1)]">
-                <div className="absolute -top-4 -right-4 p-4 opacity-10 text-primary-fixed">
-                  <svg width="100" height="100" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+            {/* Bento Grid Layout for Journal Entries */}
+            <section className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              {/* Featured Entry (Large) */}
+              <article className="sm:col-span-8 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-primary-fixed">
+                  <svg width="120" height="120" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </div>
-                <p className="font-label-sm text-[10px] sm:text-xs text-tertiary tracking-widest mb-2 font-bold uppercase">Prompt del Día</p>
-                <h3 className="font-h2 text-xl sm:text-2xl text-on-surface max-w-lg mb-2 transition-opacity">"{dailyPrompt.question}"</h3>
-                <p className="font-body-md text-sm text-on-surface-variant italic opacity-80 transition-opacity">{dailyPrompt.description}</p>
-              </div>
-            </section>
-
-            {/* Main Writing Space */}
-            <section className="mb-6 sm:mb-8">
-              <div className="glass shadow-[0_10px_40px_rgba(114,84,119,0.1)] border border-white/40 rounded-2xl p-5 sm:p-8 min-h-[350px] flex flex-col">
-                <div className="flex items-center justify-between mb-4 border-b border-outline-variant/30 pb-4">
-                  <div className="flex flex-col">
-                    <span className="font-h3 text-xl sm:text-2xl text-primary">Diario Introspectivo</span>
-                    <span className="font-label-sm text-[10px] sm:text-xs text-on-surface-variant opacity-70 mt-1 tracking-widest uppercase">
-                      {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} • Fase Lunar: {astroData.phase}
-                    </span>
+                <div className="relative z-10 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/30 text-tertiary font-label-sm text-[10px] tracking-widest font-bold uppercase">Gratitud</span>
+                    <span className="text-on-surface-variant/60 text-xs font-semibold">Hoy, 09:00 AM</span>
                   </div>
+                  <h3 className="font-h3 text-xl sm:text-2xl text-on-surface">Abundancia en lo cotidiano</h3>
+                  <p className="font-body-md text-sm sm:text-base text-on-surface-variant line-clamp-4 leading-relaxed">
+                    Hoy decido enfocarme en las pequeñas cosas que me brindan paz. El aroma del café por la mañana, la luz dorada que entra por la ventana, y la sensación de calma después de meditar. Siento que el universo me sostiene...
+                  </p>
                 </div>
-                <textarea 
-                  value={journalEntry}
-                  onChange={(e) => setJournalEntry(e.target.value)}
-                  className="flex-1 bg-transparent border-none outline-none focus:ring-0 font-body-md text-base text-on-surface leading-relaxed resize-none w-full placeholder:text-outline/50 placeholder:italic p-0" 
-                  placeholder="Escribe desde el alma..."
-                ></textarea>
-                <div className="mt-6 flex justify-end">
-                  <button 
-                    onClick={handleSaveJournal}
-                    className="bg-primary text-white px-6 py-2.5 rounded-full font-label-sm text-xs tracking-widest hover:opacity-90 shadow-lg shadow-primary/30 transition-all active:scale-95 font-semibold"
-                  >
-                    GUARDAR REFLEXIÓN
+                <div className="relative z-10 mt-6 flex justify-end">
+                  <button className="text-primary hover:text-secondary transition-colors flex items-center gap-1 font-label-sm text-xs font-bold uppercase tracking-widest">
+                    Leer más <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </button>
                 </div>
-              </div>
-            </section>
+              </article>
 
-            {/* Historial de Energía Chart */}
-            <section className="mb-6">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <h2 className="font-h3 text-xl text-primary">Tu Flujo Energético</h2>
-                <span className="font-label-sm text-[10px] text-tertiary tracking-widest font-bold">ÚLTIMOS 7 DÍAS</span>
-              </div>
-              <div className="glass shadow-[0_10px_40px_rgba(114,84,119,0.1)] border border-white/40 rounded-2xl p-5 sm:p-6 h-56 flex items-end justify-between gap-2 sm:gap-4">
-                {[
-                  { day: 'LUN', height: 'h-16', color: 'bg-primary/40' },
-                  { day: 'MAR', height: 'h-24', color: 'bg-secondary/40' },
-                  { day: 'MIE', height: 'h-32', color: 'bg-tertiary/40' },
-                  { day: 'JUE', height: 'h-20', color: 'bg-primary/40' },
-                  { day: 'VIE', height: 'h-28', color: 'bg-tertiary/40' },
-                  { day: 'SAB', height: 'h-16', color: 'bg-secondary/40' },
-                  { day: 'HOY', height: 'h-36', color: 'bg-gradient-to-t from-primary to-secondary opacity-80', isToday: true }
-                ].map((stat, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full sm:w-8 bg-primary-container/20 rounded-t-full h-32 relative overflow-hidden">
-                      <div className={`absolute bottom-0 w-full ${stat.height} ${stat.color} rounded-t-full`}></div>
-                    </div>
-                    <span className={`font-label-sm text-[9px] sm:text-[10px] tracking-widest ${stat.isToday ? 'text-primary font-bold' : 'opacity-60 text-on-surface-variant'}`}>{stat.day}</span>
+              {/* Stats/Streak (Small) */}
+              <aside className="sm:col-span-4 glass rounded-2xl p-6 shadow-[0_8px_32px_rgba(114,84,119,0.1)] border border-white/40 flex flex-col items-center justify-center text-center gap-4 min-h-[300px]">
+                <div className="w-24 h-24 rounded-full border-4 border-primary-container flex items-center justify-center relative bg-white/20">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary fill-primary/20">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                  </svg>
+                  <div className="absolute -bottom-2 bg-surface px-3 py-1 rounded-full text-[10px] sm:text-xs text-primary font-bold border border-primary-container whitespace-nowrap shadow-sm">
+                    {journalStreak} {journalStreak === 1 ? 'Día' : 'Días'}
                   </div>
-                ))}
+                </div>
+                <div>
+                  <h4 className="font-h3 text-xl text-on-surface mb-1">Racha de Luz</h4>
+                  <p className="font-body-md text-xs sm:text-sm text-on-surface-variant max-w-[200px] leading-relaxed mx-auto">
+                    Has mantenido tu conexión espiritual activa. ¡Sigue brillando!
+                  </p>
+                </div>
+              </aside>
+
+              {/* Older Entries List */}
+              <div className="sm:col-span-12 flex flex-col gap-3 mt-4">
+                <h3 className="font-h3 text-lg text-on-surface mb-2 border-b border-outline-variant/30 pb-2">Entradas Anteriores</h3>
+                
+                {/* List Item 1 */}
+                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-secondary-container/50 border border-secondary-container flex items-center justify-center text-secondary flex-shrink-0">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-h3 text-base text-on-surface truncate">Soltar para recibir</h4>
+                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Dejo ir la necesidad de control y confío en el proceso...</p>
+                  </div>
+                  <div className="flex flex-col items-end flex-shrink-0">
+                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">Ayer</span>
+                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Paz</span>
+                  </div>
+                </article>
+
+                {/* List Item 2 */}
+                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-primary-container/50 border border-primary-container flex items-center justify-center text-primary flex-shrink-0">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 22c-4.97 0-9-4.03-9-9 0-4.97 4.03-9 9-9s9 4.03 9 9c0 4.97-4.03 9-9 9z"/><path d="M12 13V3"/><path d="M12 13c-2.76 0-5-2.24-5-5s2.24-5 5-5"/><path d="M12 13c2.76 0 5-2.24 5-5s-2.24-5-5-5"/></svg>
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-h3 text-base text-on-surface truncate">Sembrando intenciones de luna nueva</h4>
+                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Visualizo mis metas cristalizándose con esta nueva energía lunar...</p>
+                  </div>
+                  <div className="flex flex-col items-end flex-shrink-0">
+                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">12 Oct</span>
+                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Enfoque</span>
+                  </div>
+                </article>
+
+                {/* List Item 3 */}
+                <article className="glass rounded-xl p-4 flex flex-row items-center gap-4 hover:scale-[1.01] transition-transform cursor-pointer border border-white/20 shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant flex-shrink-0">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13c0-3.87 3.13-7 7-7h5c0 3.87-3.13 7-7 7 1.66 0 3 1.34 3 3v4h-1z"/></svg>
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-h3 text-base text-on-surface truncate">Sanando raíces</h4>
+                    <p className="font-body-md text-xs sm:text-sm text-on-surface-variant truncate">Hoy dediqué tiempo a conectar con mis ancestros y agradecer su camino...</p>
+                  </div>
+                  <div className="flex flex-col items-end flex-shrink-0">
+                    <span className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-wider">10 Oct</span>
+                    <span className="px-2 py-0.5 rounded-full border border-tertiary-fixed-dim bg-tertiary-fixed/20 text-tertiary font-bold text-[9px] sm:text-[10px] mt-1 tracking-widest uppercase">Sanación</span>
+                  </div>
+                </article>
               </div>
             </section>
           </div>
@@ -898,6 +945,110 @@ export default function Home() {
         )}
       </main>
 
+      {/* Vista de Nueva Manifestación (Full Screen Modal) */}
+      {isCreatingManifestation && (
+        <div className="fixed inset-0 bg-background z-[100] overflow-y-auto flex flex-col animate-fade-in selection:bg-primary-container selection:text-on-primary-container">
+          <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/20 shadow-[0_0_20px_rgba(111,80,146,0.15)] h-16 flex items-center px-4 sm:px-gutter">
+            <div className="flex items-center justify-between w-full max-w-2xl mx-auto">
+              <button onClick={() => setIsCreatingManifestation(false)} className="text-primary hover:opacity-80 transition-opacity flex items-center justify-center p-2 -ml-2 rounded-full">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              </button>
+              <h1 className="font-h2 text-xl sm:text-2xl font-medium text-primary text-center tracking-tight">Nueva Manifestación</h1>
+              <div className="flex items-center justify-center p-2 -mr-2">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary/40"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-gutter max-w-2xl mx-auto w-full flex flex-col gap-6 sm:gap-8">
+            {/* Intention Icon Decor */}
+            <div className="flex justify-center mb-2">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full glass border border-white/30 flex items-center justify-center relative overflow-hidden shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-secondary/10"></div>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary relative z-10 sm:w-10 sm:h-10">
+                  <path d="M4 22h16M12 2v20M8 22v-6c0-2 1.5-4 4-4s4 2 4 4v6M3 12h18M6 12v-2c0-3 2.5-6 6-6s6 3 6 6v2"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* Form Section */}
+            <div className="flex flex-col gap-6 sm:gap-8">
+              
+              {/* Intención Principal */}
+              <div className="flex flex-col gap-2">
+                <label className="font-label-sm text-[10px] sm:text-xs text-on-surface-variant px-1 font-semibold uppercase tracking-widest">Intención Principal</label>
+                <input 
+                  type="text" 
+                  value={manifestationForm.intention}
+                  onChange={(e) => setManifestationForm(prev => ({ ...prev, intention: e.target.value }))}
+                  className="w-full bg-transparent border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 font-h2 text-xl sm:text-2xl text-on-surface placeholder:text-on-surface-variant/30 transition-all px-1 py-3 outline-none" 
+                  placeholder="¿Qué deseas sembrar hoy?"
+                />
+              </div>
+
+              {/* Mi Visión */}
+              <div className="glass rounded-2xl p-5 sm:p-6 flex flex-col gap-4 border border-white/30 shadow-[0_4px_20px_rgba(114,84,119,0.05)]">
+                <div className="flex items-center gap-2">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <label className="font-label-sm text-[10px] sm:text-xs text-on-surface-variant uppercase tracking-widest font-semibold">Mi Visión</label>
+                </div>
+                <textarea 
+                  value={manifestationForm.vision}
+                  onChange={(e) => setManifestationForm(prev => ({ ...prev, vision: e.target.value }))}
+                  className="w-full bg-transparent border-none focus:ring-0 font-body-lg text-base sm:text-lg text-on-surface p-0 placeholder:italic placeholder:text-on-surface-variant/40 resize-none outline-none" 
+                  placeholder="Describe los detalles de esta realidad como si ya existiera..." 
+                  rows="5"
+                ></textarea>
+              </div>
+
+              {/* Energía de hoy */}
+              <div className="flex flex-col gap-3">
+                <label className="font-label-sm text-[10px] sm:text-xs text-on-surface-variant px-1 uppercase tracking-widest font-semibold">Energía de hoy</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'Gratitud', icon: <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> },
+                    { id: 'Paz', icon: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1S7 6.5 7.5 6 8.5 5 10 5s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1M2 12c.6.5 1.2 1 2.5 1S7 12.5 7.5 12 8.5 11 10 11s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1M2 18c.6.5 1.2 1 2.5 1S7 18.5 7.5 18 8.5 17 10 17s1.5.5 2.5 1 1.5 1 2.5 1 1.5-.5 2.5-1 1.5-1 2.5-1 1.5.5 2.5 1 1.5 1 2.5 1"/></svg> },
+                    { id: 'Abundancia', icon: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3L8 9l4 13"/><path d="M13 3l3 6-4 13"/><path d="M2 9h20"/></svg> },
+                    { id: 'Claridad', icon: <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> }
+                  ].map(tag => (
+                    <button 
+                      key={tag.id}
+                      onClick={() => setManifestationForm(prev => ({ ...prev, energy: tag.id }))}
+                      className={`px-4 py-2 rounded-full border text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all ${manifestationForm.energy === tag.id ? 'border-primary/30 bg-primary-container/40 text-primary-fixed-variant' : 'border-outline-variant/50 bg-white/40 text-on-surface-variant hover:border-primary/40'}`}
+                    >
+                      {tag.icon} {tag.id}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Símbolo Sagrado / Image Upload Area */}
+              <div className="group relative flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-outline-variant/40 rounded-2xl hover:border-primary/40 transition-all bg-white/20 cursor-pointer overflow-hidden">
+                <div className="relative z-10 flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-white/80 shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                  </div>
+                  <p className="font-label-sm text-xs sm:text-sm text-primary font-bold mt-1">Añadir Símbolo Sagrado</p>
+                  <p className="text-[10px] sm:text-xs text-on-surface-variant/70 font-medium">Sube una imagen que inspire tu visión (opcional)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Section */}
+            <div className="mt-8 flex flex-col items-center gap-4 sm:gap-6">
+              <div className="flex items-center gap-1.5 text-on-surface-variant/60">
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span className="font-label-sm text-[10px] sm:text-[11px] tracking-[0.15em] font-bold uppercase">Espacio Sagrado & Privado</span>
+              </div>
+              <button onClick={handleManifestationSubmit} className={`bg-gradient-to-r from-primary-container to-secondary-container shadow-[0_0_20px_rgba(216,180,254,0.4)] w-full py-4 sm:py-5 rounded-full text-on-primary-container font-h2 text-xl sm:text-2xl font-semibold transition-all flex items-center justify-center gap-3 group ${!manifestationForm.intention.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}`}>
+                <span>Manifestar</span>
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform"><path d="M12 2l2 4h4l-3 3 1 4-4-3-4 3 1-4-3-3h4z"/></svg>
+              </button>
+            </div>
+          </main>
+        </div>
+      )}
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
@@ -1009,8 +1160,8 @@ export default function Home() {
             )
           },
           { 
-            id: 'diario', 
-            label: 'Diario', 
+                id: 'journal', 
+                label: 'Journal', 
             icon: (isActive) => (
               <svg width="20" height="20" className="sm:w-6 sm:h-6 transition-all duration-300" fill="none" stroke="currentColor" strokeWidth={isActive ? "1.5" : "2"} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -1064,7 +1215,7 @@ export default function Home() {
             
             <div className="flex-shrink-0 relative z-10">
               {item.icon(activeTab === item.id)}
-              {item.id === 'diario' && hasCompletedJournal && (
+              {item.id === 'journal' && hasCompletedJournal && (
                 <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-full w-full bg-primary border-transparent border"></span>
