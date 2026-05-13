@@ -668,10 +668,10 @@ export default function Home() {
         
         {/* Achievement Toast */}
         {showAchievement && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] transition-all animate-bounce">
-            <div className="bg-gradient-to-r from-primary to-secondary text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full shadow-[0_10px_40px_rgba(114,84,119,0.5)] flex items-center gap-2 sm:gap-3 border border-white/20">
-              <span className="text-lg sm:text-xl">✨</span>
-              <span className="font-label-sm tracking-widest text-[10px] sm:text-xs font-bold whitespace-nowrap">¡REFLEXIÓN CÓSMICA GUARDADA!</span>
+          <div className="fixed top-24 inset-x-0 px-4 flex justify-center z-[100] pointer-events-none transition-all">
+            <div className="animate-bounce bg-gradient-to-r from-primary to-secondary text-white px-5 py-3 rounded-2xl sm:rounded-full shadow-[0_10px_40px_rgba(114,84,119,0.5)] flex items-center justify-center gap-3 border border-white/20 max-w-sm w-full sm:w-auto">
+              <span className="text-xl flex-shrink-0">✨</span>
+              <span className="font-label-sm tracking-widest text-[10px] sm:text-xs font-bold text-center leading-snug">¡REFLEXIÓN CÓSMICA GUARDADA!</span>
             </div>
           </div>
         )}
